@@ -60,33 +60,91 @@ All commands must be run from the repository root.
 ### Build a hierarchy
 
 ```bash
-python main.py run
+python main.py run                      # blossom (default)
+python main.py run --method evaltree    # EvalTree-style hierarchy
+python main.py run --method both        # blossom, then evaltree
 ```
 
-Loads `DATA_FILE` (a base JSON with one level of leaf prompts), then per level:
+Neither method modifies `DATA_FILE`: each works on its own copy
+(`<stem>_blossom.json` / `<stem>_evaltree.json`) whose `config` header
+records which providers built it (`method`, `blossom`, `summary_generation`,
+`evaluation`). An existing blossom copy is resumed rather than rebuilt.
+
+**Blossom** (`--method blossom`) loads `DATA_FILE` (a base JSON with one level of leaf prompts), then per level:
 finds each node's third-nearest neighbor, pairs nodes with maximum-weight
 matching, generates a common summary per pair (regenerating once if the
 weakest entailment score is at or below 0.4), judges every summary
 (entailment, faithfulness, informativeness, plus a specificity pass against
 the third neighbor), records per-level statistics, promotes winners to the
 next level, and reassigns eligible third neighbors as additional children.
-The tree is saved back to `DATA_FILE` after every level, so an interrupted
-run keeps all completed levels.
+The tree is saved back to the `_blossom` copy after every level, so an
+interrupted run keeps all completed levels.
 
 After the root is reached, external scores from `SCORE_FILE` are attached to
 the leaves and averaged up the tree, and the viewer is launched.
 
+**EvalTree** (`--method evaltree`) builds a hierarchy over the same level-0
+leaves by a different route: each leaf is annotated with a capability gerund
+phrase, the leaves are clustered with recursive 2-means over sentence
+embeddings, each cluster gets a broad gerund-phrase summary generated
+bottom-up, third neighbors are assigned per level, and every summary is
+judged (entailment of sampled descendant leaves, plus specificity against
+the closest sibling-cluster outsider). The result is written to
+`<DATA_FILE stem>_evaltree.json`, so blossom and evaltree hierarchies built
+from the same base coexist. `--method both` builds blossom first (viewer
+deferred), then evaltree.
+
 Note: this mode makes many LLM API calls. A 64-leaf tree takes several hours
 and has real API cost.
 
-### Re-judge an existing tree
+### Evaluate a built tree
 
 ```bash
 python main.py score [path/to/tree.json]
 ```
 
-Re-runs the full evaluation (entailment, faithfulness, informativeness,
-specificity) on every level of an already-built tree, then re-attaches and
+Post-hoc evaluation of a built tree, blossom or evaltree (defaults to the
+`_blossom` copy of `DATA_FILE` when no path is given). The tree's `config`
+header tells the two methods apart: for **blossom** trees the external
+per-model scores from `SCORE_FILE` are first (re)attached to the leaves and
+averaged up the tree (skipped with a warning when the CSV is absent);
+evaltree trees skip score attachment. Both then get the same leaf-sampling
+evaluation below.
+
+The evaluator can also be run directly on several files at once:
+
+```bash
+python evaluation/evaluate.py path/to/tree.json [more.json ...]
+```
+
+It works on any built tree, blossom or evaltree:
+for every internal node it samples two descendant leaves and judges the
+node's summary for faithfulness and informativeness (the same leaves for
+both metrics), and judges an outsider leaf for the two specificity
+variants — the sibling-cluster leaf closest (by sentence embedding) to the
+node's own descendant-leaf centroid, recorded as `third_leaf` /
+`third_leaf_sim`. All metrics are written under their own field names
+(`faithfulness1/2`, `informativeness1/2`, `specificity_faithfulness`,
+`specificity_informativeness`) to `eval_outputs/<name>_eval.json` next to
+the input. `stats.py` turns one or more such files into the metric table
+(Avg/Min/Max/StdDev/StdErr/N per metric):
+
+```bash
+python stats.py eval_outputs/<name>_eval.json [more.json ...]
+```
+ `--model` selects the judge
+provider (default `openai`; `main.py score` uses `MODEL_CONFIG["evaluation"]`);
+`--samples` and `--seed` control the leaf sampling.
+
+### Re-run the in-pipeline judging
+
+```bash
+python main.py simplescore [path/to/tree.json]
+```
+
+Re-runs the in-pipeline evaluation (`evaluation/simple_eval.py`: entailment,
+faithfulness, informativeness, specificity in their pairwise, match-based
+form) on every level of an already-built tree, then re-attaches and
 re-aggregates the external scores. Defaults to `DATA_FILE` when no path is
 given. Use this after changing judge prompts; it regenerates no summaries.
 

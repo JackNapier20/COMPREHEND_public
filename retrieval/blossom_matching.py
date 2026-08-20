@@ -112,7 +112,8 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                     base_url=api_keys["gemma"]["base_url"]
                 )
                 resp = client.chat.completions.create(
-                    model="gemma-3-finetuned-merged-bf16",
+                    model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
+                    stop=["<end_of_turn>"],
                     messages=[
                         {"role": "system", "content": "You are a professional editor. Follow instructions exactly."},
                         {"role": "user", "content": mainIdeaExtractBatchPrompt.format(payload=payload)},
@@ -187,7 +188,8 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
             base_url=api_keys["gemma"]["base_url"]
         )
         resp = client.chat.completions.create(
-            model="gemma-3-finetuned-merged-bf16",
+            model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
+                    stop=["<end_of_turn>"],
             messages=[
                 {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
                 {"role": "user", "content": mainIdeaExtractPrompt.format(txt=text)},

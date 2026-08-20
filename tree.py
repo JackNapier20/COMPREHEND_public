@@ -72,6 +72,11 @@ class Node:
     wb_score_mistral: int | None = None
     wb_score_llama: int | None = None
     wb_scores: dict = field(default_factory=dict)
+
+    # --- evaltree (additive) ---
+    capability: str | None = None      # leaf gerund-phrase annotation
+    cluster_size: int | None = None    # number of descendant leaves
+    level_num: int | None = None
 # ─────────────────────────────────────────────────────────────
 @dataclass
 class Level:
@@ -84,6 +89,9 @@ class Level:
 class Tree:
     levels: list[Level]
     next_id: int = 0
+    # provenance header: which method/providers built this tree
+    # (e.g. {"method": "blossom", "blossom": "claude", ...})
+    config: dict = field(default_factory=dict)
 
     def new_id(self) -> int:
         _id = self.next_id
@@ -96,7 +104,8 @@ class Tree:
         if path.suffix.lower() != ".json":
             raise ValueError("Tree.load expects a *.json file")
         with open(path, "r", encoding="utf-8") as f:
-            raw = json.load(f)["levels"]
+            payload = json.load(f)
+            raw = payload["levels"]
 
         lvls = [
             Level(
@@ -144,7 +153,10 @@ class Tree:
                         evaluation_specificity_informativeness = n.get("evaluation_specificity_informativeness"),
                         wb_score_mistral = n.get("wb_score_mistral"),
                         wb_score_llama = n.get("wb_score_llama"),
-                        wb_scores = n.get("wb_scores", {})
+                        wb_scores = n.get("wb_scores", {}),
+                        capability = n.get("capability"),
+                        cluster_size = n.get("cluster_size"),
+                        level_num = n.get("level_num")
                     )
                     for n in lvl["nodes"]
                 ],
@@ -154,10 +166,13 @@ class Tree:
         ]
 
         max_id = max((n.id for lvl in lvls for n in lvl.nodes), default=-1)
-        return cls(lvls, next_id=max_id + 1)
+        return cls(lvls, next_id=max_id + 1, config=payload.get("config", {}))
 # ─────────────────────────────────────────────────────────────
     def dump(self, path: str):
-        payload = {
+        payload = {}
+        if self.config:
+            payload["config"] = self.config
+        payload.update({
             "levels": [
                 {
                     "level": lvl.level,
@@ -166,7 +181,7 @@ class Tree:
                 }
                 for lvl in self.levels
             ]
-        }
+        })
         with open(path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, default=Tree._np_encoder)
 # ─────────────────────────────────────────────────────────────

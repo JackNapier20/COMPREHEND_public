@@ -1056,8 +1056,10 @@ Prompt B: {story2}
                 base_url=api_keys["gemma"]["base_url"]
             )
             response = client.chat.completions.create(
-                model="gemma-3-finetuned-merged-bf16",
+                model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
                 max_tokens=1024,
+                stop=["<end_of_turn>"],  # IMPORTANT: never stop on "(end)" -- the
+                                          # extraction regex needs it in the output
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt14}
