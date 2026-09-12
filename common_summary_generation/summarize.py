@@ -854,7 +854,7 @@ Prompt B: {story2}
         """
         
         prompt14 = f"""
-You will be given prompts A and B. Your task is to generate a prompt C where prompt C is implied by BOTH prompt A and prompt B. This means every detail in prompt C is directly mentioned in BOTH prompt A and B. Your prompt C should be as concise as possible with the following caveats: the more similar prompt A and B are too each other, the longer prompt C should be as it would include more details common to both prompt A and B. The more broad prompt A and B are, the more concise and general your prompt C should be. If your prompt A and B are so general, instead of summarizing prompt A and B, find a one sentence category that encapsulates the two prompts that includes the medium and the topic the user requests. Begin your prompt C with "(start)" and end it with "(end)."
+You will be given prompts A and B. Your task is to generate a prompt C where prompt C is implied by BOTH prompt A and prompt B. This means every detail in prompt C is directly mentioned in BOTH prompt A and B. Your prompt C should be as concise as possible with the following caveats: the more similar prompt A and B are too each other, the longer prompt C should be as it would include more details common to both prompt A and B. The more broad prompt A and B are, the more concise and general your prompt C should be. If your prompt A and B are so general, instead of summarizing prompt A and B, find a one sentence category that encapsulates the two prompts that includes the medium and the topic the user requests. Understand that you have to be as detailed as possible, while also not being too specific to just one prompt. Be detailed, but both children prompts should be entailed as much as possible by the summary you make (so high recall). Your summary should also be discriminative: always include the shared medium (writing/coding/analysis/etc.), the shared subject domain, and any key constraints common to both A and B — so that a prompt on a completely different topic could NOT plausibly imply your summary. Begin your prompt C with "(start)" and end it with "(end)."
 
 1. (Dissimilar – Writing vs Poetry)
 Prompt A:
@@ -863,7 +863,7 @@ Prompt B:
 "Compose a 12-stanza poem in free verse about a traveler crossing a desert, emphasizing themes of endurance, loneliness, and the harsh beauty of nature. Use vivid imagery and avoid rhyme schemes."
 Prompt C:
 
-(start) Write about themes. (end)
+(start) Write a structured piece of creative or analytical writing in English that explores thematic and human experiences using a specific literary form. (end)
 
 2. (Dissimilar – Coding in Different Languages)
 Prompt A:
@@ -872,7 +872,7 @@ Prompt B:
 "I’d like a C++ program that simulates a basic banking system, allowing users to create accounts, deposit money, withdraw money, and view balances. The program should be menu-driven and use object-oriented design."
 Prompt C:
 
-(start) Write a program. (end)
+(start) Write a program that processes and manages structured data, implementing user-facing operations with organized output. (end)
 
 3. (Moderately Similar – Writing)
 Prompt A:
@@ -985,8 +985,7 @@ Prompt C:
 Now carry out this task and output a prompt C with the following prompts A & B:
 Prompt A: {story1}
 Prompt B: {story2} 
-
-        """
+"""
 
 
         # time.sleep(5)
@@ -1023,7 +1022,7 @@ Prompt B: {story2}
 
 
 
-        system_prompt = "You are a professional editor who writes quality summary that generalizes two prompts A and B. No matter the content of prompts A & B, you must write a summary."
+        system_prompt = "You are a professional editor who writes quality summary that generalizes two prompts A and B in as much specific detail as possible, while making sure that whatever is summarised is still true for both prompt A and B collectively (don't be too specific to one prompt, but while doing that also don't just union both prompts as a summary). No matter the content of prompts A & B, you must write a summary. DO NOT respond with messages that you can't or won't write a summary. That is simply not allowed, under any circumstances."
         
         if model_name == "openai":
             client = OpenAI(
