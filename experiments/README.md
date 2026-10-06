@@ -34,6 +34,51 @@ Outputs include each constructed tree, each shared-evaluator JSON,
 specificity columns, lower is better: they measure how well a parent summary
 is supported by a deliberately selected outsider leaf.
 
+# HPC Gemma comparison on WB256 and UF256
+
+`script_gemma_256.sh` runs COMPREHEND and EvalTree (`k=2`) on WB256,
+then UF256, using Gemma for main-task extraction and parent summaries and
+OpenAI for construction decisions and post-hoc evaluation. It uses the same
+precomputed leaf capabilities as the DeepSeek/GLM runs, two descendant samples,
+seed 42, and the current summary prompt. Gemma must already be serving an
+OpenAI-compatible endpoint reachable from the batch job.
+
+Set these values in the repository's `.env` (unquoted, as read by `main.py`):
+
+```dotenv
+GEMMA_API_KEY=DUMMY
+GEMMA_BASE_URL=http://YOUR_MODEL_SERVER:8000/v1
+GEMMA_MODEL=YOUR_EXACT_SERVED_MODEL_NAME
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY
+```
+
+Use `localhost` only when the server runs on the same node as the pipeline.
+The script sets `BLOSSOM_PROVIDER=gemma`, `SUMMARY_GENERATION_PROVIDER=gemma`,
+and `EVALUATION_PROVIDER=openai`; no manual edits to `main.py` are required.
+It checks the served model and both 256-leaf inputs before construction.
+
+Submit from the repository root so Slurm can open its log files:
+
+```bash
+mkdir -p slurm_output_j
+sbatch script_gemma_256.sh
+```
+
+Outputs go to `hpc_gemma_outputs/gemma256/WB256` and `UF256`. Each contains
+the constructed trees, evaluated JSONs, `comparison.json`, `comparison.csv`
+(including standard errors), and `REPORT.md`. These generated outputs are
+ignored by Git. To give a different checkpoint its own output directory:
+
+```bash
+GEMMA_RUN_TAG=gemma3-27b-it sbatch script_gemma_256.sh
+```
+
+The script retains the supplied four-hour limit. Resubmitting with the same
+tag reuses completed artifacts and resumes partial COMPREHEND/post-hoc
+evaluation checkpoints; an interrupted EvalTree construction is rebuilt.
+The exact served model name is recorded in the tree configuration and affects
+cache compatibility. Keep OpenAI network access available throughout the run.
+
 # EvalTree faithfulness-specificity gap diagnostics
 
 The diagnostic runner explains the paired

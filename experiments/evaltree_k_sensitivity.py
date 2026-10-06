@@ -94,21 +94,38 @@ def _valid_evaluation(path: Path) -> bool:
     )
 
 
+def _configured_model(role: str) -> str:
+    provider = MODEL_CONFIG[role]
+    if provider in {"gemma", "together"}:
+        model = API_KEYS[provider].get("model", "")
+        if not model or "<" in model:
+            raise ValueError(f"Configure the served model for provider {provider!r}")
+        return model
+    return provider
+
+
 def _base_config(
     source: Path,
     source_hash: str,
     leaf_count: int,
     main_idea_seed_tree: Path | None,
+    source_tree: Tree | None = None,
 ) -> dict:
+    annotation_model = _configured_model("summary_generation")
+    if (source_tree is not None and source_tree.levels
+            and all(node.capability for node in source_tree.levels[0].nodes)):
+        annotation_model = source_tree.config.get("annotation_model", "precomputed")
     config = {
         "experiment": "evaltree_k_sensitivity",
         "source": str(source.resolve()),
         "source_sha256": source_hash,
         "leaf_count": leaf_count,
-        "annotation_model": MODEL_CONFIG["summary_generation"],
-        "summary_model": MODEL_CONFIG["summary_generation"],
-        "evaluation_model": MODEL_CONFIG["evaluation"],
-        "blossom_model": MODEL_CONFIG["blossom"],
+        "annotation_model": annotation_model,
+        "summary_provider": MODEL_CONFIG["summary_generation"],
+        "summary_model": _configured_model("summary_generation"),
+        "evaluation_model": _configured_model("evaluation"),
+        "blossom_provider": MODEL_CONFIG["blossom"],
+        "blossom_model": _configured_model("blossom"),
         "blossom_summary_prompt_variant": os.environ.get(
             "BLOSSOM_SUMMARY_PROMPT_VARIANT", CURRENT_VARIANT
         ),
@@ -322,7 +339,8 @@ def main() -> None:
                 parser.error("source must contain one level with at least two nodes")
             leaf_count = len(source_tree.levels[0].nodes)
             config = _base_config(
-                args.source, source_hash, leaf_count, args.main_idea_seed_tree
+                args.source, source_hash, leaf_count, args.main_idea_seed_tree,
+                source_tree=source_tree,
             )
             trees = build_trees(
                 args.source,
