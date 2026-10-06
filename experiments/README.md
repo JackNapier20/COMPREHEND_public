@@ -56,6 +56,17 @@ Use `localhost` only when the server runs on the same node as the pipeline.
 The script sets `BLOSSOM_PROVIDER=gemma`, `SUMMARY_GENERATION_PROVIDER=gemma`,
 and `EVALUATION_PROVIDER=openai`; no manual edits to `main.py` are required.
 It checks the served model and both 256-leaf inputs before construction.
+The preflight prints the effective endpoint and client node, and retries
+connection failures for up to ten minutes to allow vLLM to finish loading.
+Set `GEMMA_WAIT_SECONDS` to change this limit. A model-name mismatch or
+authentication error stops immediately. An already-exported `GEMMA_BASE_URL`
+or `GEMMA_MODEL` takes precedence over the value in `.env`.
+
+Check readiness alone, without constructing trees or judging prompts:
+
+```bash
+python -u -m experiments.local_model_preflight
+```
 
 Submit from the repository root so Slurm can open its log files:
 

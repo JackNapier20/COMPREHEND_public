@@ -32,36 +32,7 @@ python -m pip install -r requirements.txt
 echo "Finished installing requirements"
 
 # main.py reads the repository's .env; verify the existing server and inputs.
-python - <<'PY'
-from pathlib import Path
-
-from openai import OpenAI
-from main import API_KEYS
-from tree import Tree
-
-gemma = API_KEYS["gemma"]
-if "<" in gemma["base_url"] or "<" in gemma["model"]:
-    raise SystemExit("Set GEMMA_BASE_URL and GEMMA_MODEL in .env first.")
-key = API_KEYS["openai"]
-if not key or key.endswith("..."):
-    raise SystemExit("Set OPENAI_API_KEY in .env for GPT evaluation.")
-client = OpenAI(
-    api_key=gemma["api_key"], base_url=gemma["base_url"], timeout=30,
-)
-model_ids = {model.id for model in client.models.list().data}
-if gemma["model"] not in model_ids:
-    raise SystemExit(f"GEMMA_MODEL is not served; available model IDs: {sorted(model_ids)}")
-for dataset in ("WB", "UF"):
-    source = Path(f"comparison_256_outputs/{dataset}_current_k2/evaltree_capability_base.json")
-    tree = Tree.load(source)
-    if len(tree.levels) != 1 or len(tree.levels[0].nodes) != 256:
-        raise SystemExit(f"Expected exactly 256 source leaves: {source}")
-    leaves = tree.levels[0].nodes
-    if any(not node.capability or node.mainIdea for node in leaves):
-        raise SystemExit(f"Expected fixed capabilities and fresh main ideas: {source}")
-print(f"Serving model: {gemma['model']}")
-print("Inputs verified: WB256 and UF256; Gemma generation, OpenAI evaluation.")
-PY
+python -u -m experiments.local_model_preflight
 
 # Change GEMMA_RUN_TAG for a different checkpoint; retain it to resume this run.
 OUTPUT_ROOT="hpc_gemma_outputs/${GEMMA_RUN_TAG:-gemma256}"
