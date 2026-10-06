@@ -118,6 +118,28 @@ there are four generation requests. Inspect every printed result for coherence;
 a successful endpoint response does not prove the longer pipeline prompts work.
 `--main-idea-batch-size 2` can separately test JSON batching. Keep the same
 `GEMMA_MAIN_IDEA_BATCH_SIZE` in the full run as in the successful smoke test.
+Use `--checks evaltree-summary` or `--checks comprehend-summary` to test either
+summary generator independently when extraction is failing.
+
+If a short capability prompt works but extraction repeats text or hits its
+token cap, compare the actual request with the available V4 training format:
+
+```bash
+python -u -m experiments.gemma_prompt_diagnostics \
+  --output hpc_gemma_outputs/gemma_prompt_diagnostics.json
+```
+
+This makes exactly seven generation calls, with one attempt per condition and
+128 output tokens per call. It repeats the known-working capability prompt,
+tests the current extraction prompt without its editor prefix, crosses current
+versus V4 instruction wording with current versus V4 task/instruction ordering,
+and tests a V4-style pair summary. Decoding and roles remain fixed. Failures
+and truncated responses are retained, not retried or accepted as pipeline output.
+Full prompts, hashes, responses, stop reasons, and timings are saved to the new
+JSON file; existing files are refused. This does not change production prompts
+or invoke the OpenAI judge. The V4 reference comes from the available training
+dataset; confirm checkpoint provenance before attributing failures to training.
+
 The generation policy is recorded in comparison cache identities; older
 server-default-sampling artifacts are not compatible. After a request-policy
 change, use a new `GEMMA_RUN_TAG` to retain failed/partial prior runs untouched.

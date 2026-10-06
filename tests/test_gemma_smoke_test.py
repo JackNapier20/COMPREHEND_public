@@ -48,6 +48,21 @@ class GemmaSmokeTests(unittest.TestCase):
             smoke.run_smoke_test(self.keys, batch_size=0)
         extract.assert_not_called()
 
+    @patch("experiments.gemma_smoke_test.generate_summary")
+    @patch("experiments.gemma_smoke_test.generate_cluster_summary")
+    @patch("experiments.gemma_smoke_test._extract_main_idea_llm")
+    def test_summary_can_be_tested_without_running_extraction(self, extract, cluster, common):
+        cluster.return_value = "Processing CSV data using Python"
+        result = smoke.run_smoke_test(self.keys, checks=("evaltree-summary",))
+        self.assertEqual(result, {"evaltree_summary": cluster.return_value})
+        extract.assert_not_called()
+        common.assert_not_called()
+
+    @patch("experiments.gemma_smoke_test._extract_main_idea_llm")
+    def test_unknown_check_fails_before_any_requests(self, extract):
+        with self.assertRaisesRegex(ValueError, "Select checks"):
+            smoke.run_smoke_test(self.keys, checks=("unknown",))
+        extract.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()

@@ -60,6 +60,21 @@ Input JSON:\n{payload}
     """
 )
 
+def gemma_main_idea_messages(text: str) -> list[dict]:
+    """Build the actual extraction request for inference and diagnostic probes."""
+    prompt = (
+        "You will be given a text. Extract the single most important main idea "
+        "in one short sentence.\nReturn only that sentence.\n"
+        f"Text:\n{text}"
+    )
+    return [
+        {"role": "system", "content": (
+            "You are a professional editor. Read the following prompt carefully "
+            "and respond to the best of your ability."
+        )},
+        {"role": "user", "content": prompt},
+    ]
+
 
 def _parse_main_idea_batch(raw: str, expected: int) -> list[str] | None:
     """Parse a batch response without assigning JSON formatting to nodes."""
@@ -250,18 +265,10 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
             ],
         )
     elif llm_model_name == "gemma":
-        prompt = (
-            "You will be given a text. Extract the single most important main idea "
-            "in one short sentence.\nReturn only that sentence.\n"
-            f"Text:\n{text}"
-        )
         return gemma_chat_text(
             api_keys["gemma"],
             max_tokens=min(256, int(api_keys["gemma"].get("main_idea_max_tokens", 1024))),
-            messages=[
-                {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                {"role": "user", "content": prompt},
-            ]
+            messages=gemma_main_idea_messages(text),
         )
     elif llm_model_name == "gemini":
         client = OpenAI(
