@@ -1,0 +1,1254 @@
+{
+  "results": [
+    {
+      "method": "blossom",
+      "k": null,
+      "evaluated_file": "summary_model_outputs/UF256/glm-5.2/eval_outputs/blossom_baseline_eval_openai_n2_s42_c7a2476304fc.json",
+      "provenance": {
+        "annotation_model": "claude",
+        "summary_model": "zai-org/GLM-5.2",
+        "evaluation_model": "openai",
+        "blossom_model": "zai-org/GLM-5.2",
+        "provider_fallback_count": 0,
+        "provider_fallback_policy": null
+      },
+      "structure": {
+        "leaf_nodes": 256,
+        "internal_nodes": 255,
+        "levels": 9,
+        "max_level": 8,
+        "root_nodes": 1,
+        "min_branching": 2,
+        "mean_branching": 2.0784313725490198,
+        "max_branching": 3
+      },
+      "overall": {
+        "faithfulness1": {
+          "n": 255,
+          "mean": 0.5117843137254902,
+          "std": 0.29518420204814283,
+          "stderr": 0.01848515176671338,
+          "min": 0.025,
+          "max": 1.0
+        },
+        "faithfulness2": {
+          "n": 255,
+          "mean": 0.38145098039215686,
+          "std": 0.3152974045187799,
+          "stderr": 0.019744689362576055,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "informativeness1": {
+          "n": 255,
+          "mean": 0.35343137254901963,
+          "std": 0.2499820666719065,
+          "stderr": 0.015654484248561522,
+          "min": 0.025,
+          "max": 0.975
+        },
+        "informativeness2": {
+          "n": 255,
+          "mean": 0.27266666666666667,
+          "std": 0.24066988750289506,
+          "stderr": 0.015071332968704314,
+          "min": 0.0,
+          "max": 0.97
+        },
+        "specificity_faithfulness": {
+          "n": 254,
+          "mean": 0.23039370078740157,
+          "std": 0.2856111997638027,
+          "stderr": 0.017920840530427227,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "specificity_informativeness": {
+          "n": 254,
+          "mean": 0.17783464566929133,
+          "std": 0.16775557524023532,
+          "stderr": 0.010525920952877679,
+          "min": 0.0,
+          "max": 0.88
+        }
+      },
+      "root": {
+        "faithfulness1": {
+          "n": 1,
+          "mean": 0.15,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.15,
+          "max": 0.15
+        },
+        "faithfulness2": {
+          "n": 1,
+          "mean": 0.15,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.15,
+          "max": 0.15
+        },
+        "informativeness1": {
+          "n": 1,
+          "mean": 0.12,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.12,
+          "max": 0.12
+        },
+        "informativeness2": {
+          "n": 1,
+          "mean": 0.12,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.12,
+          "max": 0.12
+        },
+        "specificity_faithfulness": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "stderr": null,
+          "min": null,
+          "max": null
+        },
+        "specificity_informativeness": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "stderr": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "by_level": {
+        "1": {
+          "faithfulness1": {
+            "n": 128,
+            "mean": 0.6683203125,
+            "std": 0.2241425282492823,
+            "stderr": 0.0198115877096706,
+            "min": 0.1,
+            "max": 1.0
+          },
+          "faithfulness2": {
+            "n": 128,
+            "mean": 0.53125,
+            "std": 0.29027817231551295,
+            "stderr": 0.025657208009342042,
+            "min": 0.04,
+            "max": 1.0
+          },
+          "informativeness1": {
+            "n": 128,
+            "mean": 0.501640625,
+            "std": 0.22349594350191465,
+            "stderr": 0.019754437152236168,
+            "min": 0.05,
+            "max": 0.975
+          },
+          "informativeness2": {
+            "n": 128,
+            "mean": 0.39765625,
+            "std": 0.24365163066555548,
+            "stderr": 0.0215359650363468,
+            "min": 0.05,
+            "max": 0.97
+          },
+          "specificity_faithfulness": {
+            "n": 128,
+            "mean": 0.2115625,
+            "std": 0.28356403684551745,
+            "stderr": 0.025063756669262173,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 128,
+            "mean": 0.184140625,
+            "std": 0.17822187067531267,
+            "stderr": 0.015752736663783184,
+            "min": 0.0,
+            "max": 0.85
+          }
+        },
+        "2": {
+          "faithfulness1": {
+            "n": 64,
+            "mean": 0.4184375,
+            "std": 0.267840978348235,
+            "stderr": 0.033480122293529375,
+            "min": 0.025,
+            "max": 0.975
+          },
+          "faithfulness2": {
+            "n": 64,
+            "mean": 0.28109375,
+            "std": 0.2818539371111913,
+            "stderr": 0.03523174213889891,
+            "min": 0.0,
+            "max": 0.96
+          },
+          "informativeness1": {
+            "n": 64,
+            "mean": 0.270703125,
+            "std": 0.20043576968160434,
+            "stderr": 0.025054471210200543,
+            "min": 0.025,
+            "max": 0.91
+          },
+          "informativeness2": {
+            "n": 64,
+            "mean": 0.19296875,
+            "std": 0.19031869418725755,
+            "stderr": 0.023789836773407194,
+            "min": 0.0,
+            "max": 0.9
+          },
+          "specificity_faithfulness": {
+            "n": 64,
+            "mean": 0.26609375,
+            "std": 0.29335290620575943,
+            "stderr": 0.03666911327571993,
+            "min": 0.0,
+            "max": 0.98
+          },
+          "specificity_informativeness": {
+            "n": 64,
+            "mean": 0.1928125,
+            "std": 0.16763971903109776,
+            "stderr": 0.02095496487888722,
+            "min": 0.0,
+            "max": 0.88
+          }
+        },
+        "3": {
+          "faithfulness1": {
+            "n": 32,
+            "mean": 0.3725,
+            "std": 0.2800230405266796,
+            "stderr": 0.049501547711222636,
+            "min": 0.05,
+            "max": 0.975
+          },
+          "faithfulness2": {
+            "n": 32,
+            "mean": 0.211875,
+            "std": 0.26086008485578577,
+            "stderr": 0.04611398373560608,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "informativeness1": {
+            "n": 32,
+            "mean": 0.16734375,
+            "std": 0.1440429168517539,
+            "stderr": 0.025463430821941302,
+            "min": 0.05,
+            "max": 0.8200000000000001
+          },
+          "informativeness2": {
+            "n": 32,
+            "mean": 0.12375,
+            "std": 0.12873453555732933,
+            "stderr": 0.022757265766372072,
+            "min": 0.0,
+            "max": 0.72
+          },
+          "specificity_faithfulness": {
+            "n": 32,
+            "mean": 0.2675,
+            "std": 0.3210969103034964,
+            "stderr": 0.05676245067341273,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "specificity_informativeness": {
+            "n": 32,
+            "mean": 0.1709375,
+            "std": 0.1635564295439384,
+            "stderr": 0.028912965109294655,
+            "min": 0.05,
+            "max": 0.82
+          }
+        },
+        "4": {
+          "faithfulness1": {
+            "n": 16,
+            "mean": 0.2353125,
+            "std": 0.26700479864601684,
+            "stderr": 0.06675119966150421,
+            "min": 0.025,
+            "max": 0.8999999999999999
+          },
+          "faithfulness2": {
+            "n": 16,
+            "mean": 0.160625,
+            "std": 0.2590101349368399,
+            "stderr": 0.06475253373420997,
+            "min": 0.0,
+            "max": 0.85
+          },
+          "informativeness1": {
+            "n": 16,
+            "mean": 0.119375,
+            "std": 0.05867637230322497,
+            "stderr": 0.014669093075806243,
+            "min": 0.06,
+            "max": 0.265
+          },
+          "informativeness2": {
+            "n": 16,
+            "mean": 0.08,
+            "std": 0.050066622281382894,
+            "stderr": 0.012516655570345724,
+            "min": 0.0,
+            "max": 0.18
+          },
+          "specificity_faithfulness": {
+            "n": 16,
+            "mean": 0.24937499999999999,
+            "std": 0.2848501067813269,
+            "stderr": 0.07121252669533172,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "specificity_informativeness": {
+            "n": 16,
+            "mean": 0.13875,
+            "std": 0.13139634698118513,
+            "stderr": 0.03284908674529628,
+            "min": 0.05,
+            "max": 0.45
+          }
+        },
+        "5": {
+          "faithfulness1": {
+            "n": 8,
+            "mean": 0.22312500000000002,
+            "std": 0.21651356770419727,
+            "stderr": 0.07654910597126528,
+            "min": 0.025,
+            "max": 0.7250000000000001
+          },
+          "faithfulness2": {
+            "n": 8,
+            "mean": 0.17125,
+            "std": 0.1682207308440737,
+            "stderr": 0.05947500975800076,
+            "min": 0.0,
+            "max": 0.55
+          },
+          "informativeness1": {
+            "n": 8,
+            "mean": 0.07875,
+            "std": 0.03430431043303034,
+            "stderr": 0.01212840526556209,
+            "min": 0.05,
+            "max": 0.15
+          },
+          "informativeness2": {
+            "n": 8,
+            "mean": 0.0625,
+            "std": 0.02549509756796392,
+            "stderr": 0.00901387818865997,
+            "min": 0.05,
+            "max": 0.12
+          },
+          "specificity_faithfulness": {
+            "n": 8,
+            "mean": 0.15625,
+            "std": 0.18407587721216645,
+            "stderr": 0.06508065051479259,
+            "min": 0.0,
+            "max": 0.55
+          },
+          "specificity_informativeness": {
+            "n": 8,
+            "mean": 0.12625,
+            "std": 0.11160357137142674,
+            "stderr": 0.03945782106068634,
+            "min": 0.0,
+            "max": 0.35
+          }
+        },
+        "6": {
+          "faithfulness1": {
+            "n": 4,
+            "mean": 0.09875,
+            "std": 0.07110731326663945,
+            "stderr": 0.035553656633319726,
+            "min": 0.025,
+            "max": 0.19
+          },
+          "faithfulness2": {
+            "n": 4,
+            "mean": 0.07,
+            "std": 0.07702813338860895,
+            "stderr": 0.038514066694304475,
+            "min": 0.0,
+            "max": 0.18
+          },
+          "informativeness1": {
+            "n": 4,
+            "mean": 0.11125,
+            "std": 0.019311050377094116,
+            "stderr": 0.009655525188547058,
+            "min": 0.08499999999999999,
+            "max": 0.13
+          },
+          "informativeness2": {
+            "n": 4,
+            "mean": 0.07250000000000001,
+            "std": 0.02217355782608345,
+            "stderr": 0.011086778913041726,
+            "min": 0.05,
+            "max": 0.1
+          },
+          "specificity_faithfulness": {
+            "n": 4,
+            "mean": 0.10250000000000001,
+            "std": 0.0984462628374824,
+            "stderr": 0.0492231314187412,
+            "min": 0.05,
+            "max": 0.25
+          },
+          "specificity_informativeness": {
+            "n": 4,
+            "mean": 0.1075,
+            "std": 0.09604686356149272,
+            "stderr": 0.04802343178074636,
+            "min": 0.05,
+            "max": 0.25
+          }
+        },
+        "7": {
+          "faithfulness1": {
+            "n": 2,
+            "mean": 0.08249999999999999,
+            "std": 0.04596194077712558,
+            "stderr": 0.03249999999999999,
+            "min": 0.05,
+            "max": 0.11499999999999999
+          },
+          "faithfulness2": {
+            "n": 2,
+            "mean": 0.065,
+            "std": 0.021213203435596423,
+            "stderr": 0.014999999999999998,
+            "min": 0.05,
+            "max": 0.08
+          },
+          "informativeness1": {
+            "n": 2,
+            "mean": 0.065,
+            "std": 0.021213203435596423,
+            "stderr": 0.014999999999999998,
+            "min": 0.05,
+            "max": 0.08
+          },
+          "informativeness2": {
+            "n": 2,
+            "mean": 0.065,
+            "std": 0.021213203435596423,
+            "stderr": 0.014999999999999998,
+            "min": 0.05,
+            "max": 0.08
+          },
+          "specificity_faithfulness": {
+            "n": 2,
+            "mean": 0.1,
+            "std": 0.07071067811865475,
+            "stderr": 0.049999999999999996,
+            "min": 0.05,
+            "max": 0.15
+          },
+          "specificity_informativeness": {
+            "n": 2,
+            "mean": 0.065,
+            "std": 0.021213203435596423,
+            "stderr": 0.014999999999999998,
+            "min": 0.05,
+            "max": 0.08
+          }
+        },
+        "8": {
+          "faithfulness1": {
+            "n": 1,
+            "mean": 0.15,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.15,
+            "max": 0.15
+          },
+          "faithfulness2": {
+            "n": 1,
+            "mean": 0.15,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.15,
+            "max": 0.15
+          },
+          "informativeness1": {
+            "n": 1,
+            "mean": 0.12,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.12,
+            "max": 0.12
+          },
+          "informativeness2": {
+            "n": 1,
+            "mean": 0.12,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.12,
+            "max": 0.12
+          },
+          "specificity_faithfulness": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "stderr": null,
+            "min": null,
+            "max": null
+          },
+          "specificity_informativeness": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "stderr": null,
+            "min": null,
+            "max": null
+          }
+        }
+      }
+    },
+    {
+      "method": "evaltree",
+      "k": 2,
+      "evaluated_file": "summary_model_outputs/UF256/glm-5.2/eval_outputs/evaltree_k2_eval_openai_n2_s42_4f4f03b6443a.json",
+      "provenance": {
+        "annotation_model": "claude",
+        "summary_model": "zai-org/GLM-5.2",
+        "evaluation_model": "openai",
+        "blossom_model": "zai-org/GLM-5.2",
+        "provider_fallback_count": 0,
+        "provider_fallback_policy": "zai-org/GLM-5.2 retries=3; no cross-provider fallback"
+      },
+      "structure": {
+        "leaf_nodes": 256,
+        "internal_nodes": 254,
+        "levels": 13,
+        "max_level": 12,
+        "root_nodes": 1,
+        "min_branching": 2,
+        "mean_branching": 2.0039370078740157,
+        "max_branching": 3
+      },
+      "overall": {
+        "faithfulness1": {
+          "n": 254,
+          "mean": 0.41364173228346457,
+          "std": 0.32849944139163434,
+          "stderr": 0.020611888148582325,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "faithfulness2": {
+          "n": 254,
+          "mean": 0.27059055118110237,
+          "std": 0.3322864342352394,
+          "stderr": 0.02084950521295599,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "informativeness1": {
+          "n": 254,
+          "mean": 0.16625984251968504,
+          "std": 0.1518150639360922,
+          "stderr": 0.009525724317412176,
+          "min": 0.0,
+          "max": 0.8400000000000001
+        },
+        "informativeness2": {
+          "n": 254,
+          "mean": 0.11334645669291339,
+          "std": 0.12025426803024586,
+          "stderr": 0.0075454238568217835,
+          "min": 0.0,
+          "max": 0.8
+        },
+        "specificity_faithfulness": {
+          "n": 253,
+          "mean": 0.30213438735177867,
+          "std": 0.3730071248672155,
+          "stderr": 0.023450757018694045,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "specificity_informativeness": {
+          "n": 253,
+          "mean": 0.13861660079051383,
+          "std": 0.1521384056877977,
+          "stderr": 0.00956485961566045,
+          "min": 0.0,
+          "max": 0.95
+        }
+      },
+      "root": {
+        "faithfulness1": {
+          "n": 1,
+          "mean": 0.075,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.075,
+          "max": 0.075
+        },
+        "faithfulness2": {
+          "n": 1,
+          "mean": 0.0,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "informativeness1": {
+          "n": 1,
+          "mean": 0.05,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "informativeness2": {
+          "n": 1,
+          "mean": 0.05,
+          "std": 0.0,
+          "stderr": 0.0,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "specificity_faithfulness": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "stderr": null,
+          "min": null,
+          "max": null
+        },
+        "specificity_informativeness": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "stderr": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "by_level": {
+        "1": {
+          "faithfulness1": {
+            "n": 91,
+            "mean": 0.6342857142857142,
+            "std": 0.2980618610555081,
+            "stderr": 0.03124537293496044,
+            "min": 0.025,
+            "max": 1.0
+          },
+          "faithfulness2": {
+            "n": 91,
+            "mean": 0.48813186813186815,
+            "std": 0.36808486970598414,
+            "stderr": 0.038585778753954615,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "informativeness1": {
+            "n": 91,
+            "mean": 0.2703296703296703,
+            "std": 0.17955469949263403,
+            "stderr": 0.0188224468840289,
+            "min": 0.05,
+            "max": 0.8400000000000001
+          },
+          "informativeness2": {
+            "n": 91,
+            "mean": 0.18747252747252746,
+            "std": 0.15954514099355083,
+            "stderr": 0.016724875207619987,
+            "min": 0.05,
+            "max": 0.8
+          },
+          "specificity_faithfulness": {
+            "n": 91,
+            "mean": 0.34846153846153843,
+            "std": 0.40052166837464215,
+            "stderr": 0.04198607917357021,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 91,
+            "mean": 0.1835164835164835,
+            "std": 0.18718602527594858,
+            "stderr": 0.019622427194302263,
+            "min": 0.0,
+            "max": 0.95
+          }
+        },
+        "2": {
+          "faithfulness1": {
+            "n": 55,
+            "mean": 0.416,
+            "std": 0.30381280786402376,
+            "stderr": 0.040966110655299245,
+            "min": 0.025,
+            "max": 1.0
+          },
+          "faithfulness2": {
+            "n": 55,
+            "mean": 0.248,
+            "std": 0.295198614871788,
+            "stderr": 0.03980457310917981,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "informativeness1": {
+            "n": 55,
+            "mean": 0.15972727272727272,
+            "std": 0.11363692255754804,
+            "stderr": 0.015322799511808996,
+            "min": 0.035,
+            "max": 0.45
+          },
+          "informativeness2": {
+            "n": 55,
+            "mean": 0.09818181818181819,
+            "std": 0.06796216019856358,
+            "stderr": 0.009164015811715278,
+            "min": 0.0,
+            "max": 0.35
+          },
+          "specificity_faithfulness": {
+            "n": 55,
+            "mean": 0.3205454545454545,
+            "std": 0.38185423911835775,
+            "stderr": 0.05148921509892055,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 55,
+            "mean": 0.162,
+            "std": 0.16382465784648695,
+            "stderr": 0.022090112357637838,
+            "min": 0.0,
+            "max": 0.78
+          }
+        },
+        "3": {
+          "faithfulness1": {
+            "n": 35,
+            "mean": 0.31357142857142856,
+            "std": 0.2330348731431421,
+            "stderr": 0.039390082907409335,
+            "min": 0.025,
+            "max": 1.0
+          },
+          "faithfulness2": {
+            "n": 35,
+            "mean": 0.12571428571428572,
+            "std": 0.17771897370130568,
+            "stderr": 0.030039989353928768,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "informativeness1": {
+            "n": 35,
+            "mean": 0.11457142857142857,
+            "std": 0.09200680464422366,
+            "stderr": 0.015551988481808212,
+            "min": 0.0,
+            "max": 0.5
+          },
+          "informativeness2": {
+            "n": 35,
+            "mean": 0.07857142857142857,
+            "std": 0.07191264542087554,
+            "stderr": 0.012155455649247228,
+            "min": 0.0,
+            "max": 0.45
+          },
+          "specificity_faithfulness": {
+            "n": 35,
+            "mean": 0.3482857142857143,
+            "std": 0.38594792177096604,
+            "stderr": 0.06523710563767213,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 35,
+            "mean": 0.11485714285714285,
+            "std": 0.10302402428478481,
+            "stderr": 0.01741423849270798,
+            "min": 0.0,
+            "max": 0.45
+          }
+        },
+        "4": {
+          "faithfulness1": {
+            "n": 26,
+            "mean": 0.20615384615384616,
+            "std": 0.22651846587997054,
+            "stderr": 0.044423926065810436,
+            "min": 0.0,
+            "max": 0.975
+          },
+          "faithfulness2": {
+            "n": 26,
+            "mean": 0.08807692307692308,
+            "std": 0.18519220784405008,
+            "stderr": 0.03631918006008239,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "informativeness1": {
+            "n": 26,
+            "mean": 0.08807692307692308,
+            "std": 0.05658757678284029,
+            "stderr": 0.011097736855485874,
+            "min": 0.02,
+            "max": 0.235
+          },
+          "informativeness2": {
+            "n": 26,
+            "mean": 0.06576923076923077,
+            "std": 0.043190098580399364,
+            "stderr": 0.008470275209825092,
+            "min": 0.0,
+            "max": 0.22
+          },
+          "specificity_faithfulness": {
+            "n": 26,
+            "mean": 0.27884615384615385,
+            "std": 0.348061223615351,
+            "stderr": 0.06826042196690987,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 26,
+            "mean": 0.09192307692307693,
+            "std": 0.1072574186066113,
+            "stderr": 0.021034910402026957,
+            "min": 0.05,
+            "max": 0.55
+          }
+        },
+        "5": {
+          "faithfulness1": {
+            "n": 14,
+            "mean": 0.31357142857142856,
+            "std": 0.3178983181134192,
+            "stderr": 0.08496189930086337,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "faithfulness2": {
+            "n": 14,
+            "mean": 0.18928571428571428,
+            "std": 0.30957698895091035,
+            "stderr": 0.08273793053452919,
+            "min": 0.0,
+            "max": 0.95
+          },
+          "informativeness1": {
+            "n": 14,
+            "mean": 0.06178571428571429,
+            "std": 0.019573052792152677,
+            "stderr": 0.00523111839724817,
+            "min": 0.035,
+            "max": 0.1
+          },
+          "informativeness2": {
+            "n": 14,
+            "mean": 0.052142857142857144,
+            "std": 0.014238934396479701,
+            "stderr": 0.003805515290312702,
+            "min": 0.02,
+            "max": 0.08
+          },
+          "specificity_faithfulness": {
+            "n": 14,
+            "mean": 0.23142857142857143,
+            "std": 0.3430823436224815,
+            "stderr": 0.09169261323476954,
+            "min": 0.0,
+            "max": 1.0
+          },
+          "specificity_informativeness": {
+            "n": 14,
+            "mean": 0.07428571428571429,
+            "std": 0.04200994126198184,
+            "stderr": 0.011227629074345267,
+            "min": 0.05,
+            "max": 0.18
+          }
+        },
+        "6": {
+          "faithfulness1": {
+            "n": 11,
+            "mean": 0.17727272727272728,
+            "std": 0.21108486014354083,
+            "stderr": 0.06364448000188819,
+            "min": 0.0,
+            "max": 0.55
+          },
+          "faithfulness2": {
+            "n": 11,
+            "mean": 0.06636363636363636,
+            "std": 0.050452497910951306,
+            "stderr": 0.015212000482437739,
+            "min": 0.0,
+            "max": 0.2
+          },
+          "informativeness1": {
+            "n": 11,
+            "mean": 0.06681818181818182,
+            "std": 0.03348676807880444,
+            "stderr": 0.010096640469004062,
+            "min": 0.0,
+            "max": 0.125
+          },
+          "informativeness2": {
+            "n": 11,
+            "mean": 0.04272727272727273,
+            "std": 0.021489955370316196,
+            "stderr": 0.006479465338620169,
+            "min": 0.0,
+            "max": 0.08
+          },
+          "specificity_faithfulness": {
+            "n": 11,
+            "mean": 0.22272727272727272,
+            "std": 0.3060421836639815,
+            "stderr": 0.09227519029404195,
+            "min": 0.0,
+            "max": 0.98
+          },
+          "specificity_informativeness": {
+            "n": 11,
+            "mean": 0.08454545454545455,
+            "std": 0.027699688216164583,
+            "stderr": 0.008351770238440618,
+            "min": 0.05,
+            "max": 0.12
+          }
+        },
+        "7": {
+          "faithfulness1": {
+            "n": 7,
+            "mean": 0.08785714285714286,
+            "std": 0.09690446940402797,
+            "stderr": 0.036626446710532216,
+            "min": 0.0,
+            "max": 0.30000000000000004
+          },
+          "faithfulness2": {
+            "n": 7,
+            "mean": 0.02142857142857143,
+            "std": 0.02672612419124244,
+            "stderr": 0.010101525445522107,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "informativeness1": {
+            "n": 7,
+            "mean": 0.053571428571428575,
+            "std": 0.028826244655736567,
+            "stderr": 0.010895296370140523,
+            "min": 0.01,
+            "max": 0.09
+          },
+          "informativeness2": {
+            "n": 7,
+            "mean": 0.04285714285714286,
+            "std": 0.03147183169877773,
+            "stderr": 0.011895234282663616,
+            "min": 0.0,
+            "max": 0.08
+          },
+          "specificity_faithfulness": {
+            "n": 7,
+            "mean": 0.1957142857142857,
+            "std": 0.33385910914921096,
+            "stderr": 0.12618688224891159,
+            "min": 0.05,
+            "max": 0.95
+          },
+          "specificity_informativeness": {
+            "n": 7,
+            "mean": 0.054285714285714284,
+            "std": 0.020701966780270628,
+            "stderr": 0.007824607964359517,
+            "min": 0.02,
+            "max": 0.08
+          }
+        },
+        "8": {
+          "faithfulness1": {
+            "n": 5,
+            "mean": 0.025,
+            "std": 0.025,
+            "stderr": 0.011180339887498949,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "faithfulness2": {
+            "n": 5,
+            "mean": 0.0,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "informativeness1": {
+            "n": 5,
+            "mean": 0.030000000000000002,
+            "std": 0.02091650066335189,
+            "stderr": 0.009354143466934852,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "informativeness2": {
+            "n": 5,
+            "mean": 0.02,
+            "std": 0.027386127875258306,
+            "stderr": 0.012247448713915891,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "specificity_faithfulness": {
+            "n": 5,
+            "mean": 0.01,
+            "std": 0.022360679774997897,
+            "stderr": 0.01,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "specificity_informativeness": {
+            "n": 5,
+            "mean": 0.044000000000000004,
+            "std": 0.01341640786499874,
+            "stderr": 0.006,
+            "min": 0.02,
+            "max": 0.05
+          }
+        },
+        "9": {
+          "faithfulness1": {
+            "n": 4,
+            "mean": 0.056249999999999994,
+            "std": 0.0800390529679106,
+            "stderr": 0.0400195264839553,
+            "min": 0.0,
+            "max": 0.175
+          },
+          "faithfulness2": {
+            "n": 4,
+            "mean": 0.0375,
+            "std": 0.075,
+            "stderr": 0.0375,
+            "min": 0.0,
+            "max": 0.15
+          },
+          "informativeness1": {
+            "n": 4,
+            "mean": 0.03125,
+            "std": 0.0125,
+            "stderr": 0.00625,
+            "min": 0.025,
+            "max": 0.05
+          },
+          "informativeness2": {
+            "n": 4,
+            "mean": 0.0125,
+            "std": 0.025,
+            "stderr": 0.0125,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "specificity_faithfulness": {
+            "n": 4,
+            "mean": 0.037500000000000006,
+            "std": 0.025,
+            "stderr": 0.0125,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "specificity_informativeness": {
+            "n": 4,
+            "mean": 0.0625,
+            "std": 0.025,
+            "stderr": 0.0125,
+            "min": 0.05,
+            "max": 0.1
+          }
+        },
+        "10": {
+          "faithfulness1": {
+            "n": 3,
+            "mean": 0.04166666666666667,
+            "std": 0.03818813079129867,
+            "stderr": 0.022047927592204926,
+            "min": 0.0,
+            "max": 0.07500000000000001
+          },
+          "faithfulness2": {
+            "n": 3,
+            "mean": 0.03333333333333333,
+            "std": 0.02886751345948129,
+            "stderr": 0.01666666666666667,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "informativeness1": {
+            "n": 3,
+            "mean": 0.03666666666666667,
+            "std": 0.012583057392117916,
+            "stderr": 0.007264831572567789,
+            "min": 0.025,
+            "max": 0.05
+          },
+          "informativeness2": {
+            "n": 3,
+            "mean": 0.023333333333333334,
+            "std": 0.025166114784235832,
+            "stderr": 0.014529663145135579,
+            "min": 0.0,
+            "max": 0.05
+          },
+          "specificity_faithfulness": {
+            "n": 3,
+            "mean": 0.13333333333333333,
+            "std": 0.10408329997330663,
+            "stderr": 0.06009252125773316,
+            "min": 0.05,
+            "max": 0.25
+          },
+          "specificity_informativeness": {
+            "n": 3,
+            "mean": 0.05333333333333334,
+            "std": 0.046188021535170064,
+            "stderr": 0.02666666666666667,
+            "min": 0.0,
+            "max": 0.08
+          }
+        },
+        "11": {
+          "faithfulness1": {
+            "n": 2,
+            "mean": 0.3125,
+            "std": 0.37123106012293744,
+            "stderr": 0.26249999999999996,
+            "min": 0.05,
+            "max": 0.575
+          },
+          "faithfulness2": {
+            "n": 2,
+            "mean": 0.1,
+            "std": 0.07071067811865475,
+            "stderr": 0.049999999999999996,
+            "min": 0.05,
+            "max": 0.15
+          },
+          "informativeness1": {
+            "n": 2,
+            "mean": 0.0675,
+            "std": 0.024748737341529155,
+            "stderr": 0.017499999999999995,
+            "min": 0.05,
+            "max": 0.08499999999999999
+          },
+          "informativeness2": {
+            "n": 2,
+            "mean": 0.05,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.05,
+            "max": 0.05
+          },
+          "specificity_faithfulness": {
+            "n": 2,
+            "mean": 0.0,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "specificity_informativeness": {
+            "n": 2,
+            "mean": 0.035,
+            "std": 0.021213203435596427,
+            "stderr": 0.015,
+            "min": 0.02,
+            "max": 0.05
+          }
+        },
+        "12": {
+          "faithfulness1": {
+            "n": 1,
+            "mean": 0.075,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.075,
+            "max": 0.075
+          },
+          "faithfulness2": {
+            "n": 1,
+            "mean": 0.0,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          },
+          "informativeness1": {
+            "n": 1,
+            "mean": 0.05,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.05,
+            "max": 0.05
+          },
+          "informativeness2": {
+            "n": 1,
+            "mean": 0.05,
+            "std": 0.0,
+            "stderr": 0.0,
+            "min": 0.05,
+            "max": 0.05
+          },
+          "specificity_faithfulness": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "stderr": null,
+            "min": null,
+            "max": null
+          },
+          "specificity_informativeness": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "stderr": null,
+            "min": null,
+            "max": null
+          }
+        }
+      }
+    }
+  ]
+}

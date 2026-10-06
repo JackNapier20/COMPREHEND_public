@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 
 from evaltree.llm import generate_text
 from evaltree.prompts import ENTAILMENT_PROMPT, ENTAILMENT_SYSTEM
+from evaltree.sampling import sample_descendants
 from tree import Tree
 
 _embed_model = None
@@ -101,8 +102,9 @@ def run_evaluation_on_tree(tree: Tree, num_eval_samples: int = 2,
 
             # 1. Entailment: sample descendant leaves against the summary
             if descendant_leaves:
-                sampled = random.sample(descendant_leaves,
-                                        min(num_eval_samples, len(descendant_leaves)))
+                sampled = sample_descendants(
+                    descendant_leaves, num_eval_samples, random
+                )
                 for i, child in enumerate(sampled):
                     child_text = child.summary or child.prompt
                     score, eval_text = evaluate_node(child_text, parent.summary,
@@ -152,6 +154,8 @@ def run_evaluation_on_tree(tree: Tree, num_eval_samples: int = 2,
                         best_outsider = random.choice(outsider_pool)
 
                     outsider_text = best_outsider.summary or best_outsider.prompt
+                    parent.third_leaf = best_outsider.id
+                    parent.third_leaf_sim = best_sim if best_sim > -2.0 else None
                     spec_score, spec_eval = evaluate_node(outsider_text, parent.summary,
                                                           model_name=model_name, api_keys=api_keys)
                     parent.specificity = spec_score

@@ -1,8 +1,16 @@
 import re
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import anthropic
 from tree import Tree
-import time
 from openai import OpenAI 
+from llm_utils import anthropic_text, openai_chat_text, together_chat_text
+from common_summary_generation.prompt_variants import (
+    CURRENT_VARIANT,
+    apply_summary_prompt_variant,
+    summary_system_prompt,
+)
 
 # openai_api_key = "DUMMY"
 # openai_api_base = "http://<GPU_HOST>:8000/v1"
@@ -21,12 +29,29 @@ from openai import OpenAI
 # Global initialization handled contextually
 level = 1
 
-def generate_summary(tree: Tree, level_idx: int, threshold = 0, model_name="openai", api_keys: dict = None):
+
+def _together_summary_text(config, messages):
+    """Generate a Together summary through the shared bounded-retry adapter."""
+    return together_chat_text(config, messages=messages)
+
+def generate_summary(tree: Tree, level_idx: int, threshold=0, model_name="openai",
+                     api_keys: dict = None, checkpoint_path=None):
 
     global level
 
     level_obj = tree.levels[level_idx]
     summarized = set()
+    pending_together = {}
+    together_workers = (
+        max(1, int(api_keys["together"].get("concurrency", 1)))
+        if model_name == "together"
+        else 1
+    )
+    together_pool = (
+        ThreadPoolExecutor(max_workers=together_workers)
+        if together_workers > 1
+        else None
+    )
 
     for idx, node in enumerate(level_obj.nodes):
         if not node.alive:
@@ -44,17 +69,22 @@ def generate_summary(tree: Tree, level_idx: int, threshold = 0, model_name="open
 
         if idx in summarized and node.entail_2 >= threshold:
             continue
-        # --- do not overwrite existing summaries --------------------------
-        # If this node already has a summary, copy it to the partner (if missing) and skip.
-        # if node.summary:
-        #     if partner_node and not partner_node.summary:
-        #         partner_node.summary = node.summary
-        #     continue
+        # Preserve completed work on resume. Low-entailment summaries are still
+        # regenerated on later refinement iterations.
+        if node.summary and (node.entail_2 is None or node.entail_2 >= threshold):
+            if partner_node and not partner_node.summary:
+                partner_node.summary = node.summary
+            summarized.add(idx)
+            summarized.add(partner_idx)
+            continue
 
-        # If the partner already has a summary, copy it to this node and skip.
-        # if partner_node and partner_node.summary:
-        #     node.summary = partner_node.summary
-        #     continue
+        if (partner_node and partner_node.summary
+                and (partner_node.entail_2 is None
+                     or partner_node.entail_2 >= threshold)):
+            node.summary = partner_node.summary
+            summarized.add(idx)
+            summarized.add(partner_idx)
+            continue
 
         if not story1 or not story2:
             # return "Error: One or both stories are missing. No summary generated."
@@ -987,6 +1017,11 @@ Prompt A: {story1}
 Prompt B: {story2} 
 """
 
+        prompt_variant = os.environ.get(
+            "BLOSSOM_SUMMARY_PROMPT_VARIANT", CURRENT_VARIANT
+        )
+        prompt14 = apply_summary_prompt_variant(prompt14, prompt_variant)
+
 
         # time.sleep(5)
         # chat_response = client.chat.completions.create(
@@ -1022,7 +1057,7 @@ Prompt B: {story2}
 
 
 
-        system_prompt = "You are a professional editor who writes quality summary that generalizes two prompts A and B in as much specific detail as possible, while making sure that whatever is summarised is still true for both prompt A and B collectively (don't be too specific to one prompt, but while doing that also don't just union both prompts as a summary). No matter the content of prompts A & B, you must write a summary. DO NOT respond with messages that you can't or won't write a summary. That is simply not allowed, under any circumstances."
+        system_prompt = summary_system_prompt(prompt_variant)
         
         if model_name == "openai":
             client = OpenAI(
@@ -1040,15 +1075,49 @@ Prompt B: {story2}
             client = anthropic.Anthropic(
                 api_key=api_keys["claude"]
             )
-            message = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=1024,
-                system=system_prompt,
-                messages=[
-                    {"role": "user", "content": prompt14}
-                ]
-            )
-            raw = message.content[0].text.strip()
+            try:
+                raw = anthropic_text(
+                    client,
+                    model="claude-sonnet-4-6",
+                    max_tokens=1024,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": prompt14}],
+                )
+            except RuntimeError as exc:
+                print(f"Claude summary refused/failed for L{level_idx} node {node.id}; "
+                      f"using gpt-4o-mini fallback: {exc}")
+                tree.config.setdefault("provider_fallbacks", []).append({
+                    "stage": "blossom_summary",
+                    "level": level_idx,
+                    "node_id": node.id,
+                    "from": "claude-sonnet-4-6",
+                    "to": "gpt-4o-mini",
+                })
+                fallback = OpenAI(api_key=api_keys["openai"])
+                raw = openai_chat_text(
+                    fallback,
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt14},
+                    ],
+                )
+        elif model_name == "together":
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt14},
+            ]
+            if together_pool is not None:
+                future = together_pool.submit(
+                    _together_summary_text,
+                    api_keys["together"],
+                    messages,
+                )
+                pending_together[future] = (node, partner_node)
+                summarized.add(idx)
+                summarized.add(partner_idx)
+                continue
+            raw = _together_summary_text(api_keys["together"], messages)
         elif model_name == "gemma":
             client = OpenAI(
                 api_key=api_keys["gemma"]["api_key"],
@@ -1101,6 +1170,43 @@ Prompt B: {story2}
         summarized.add(idx)
         summarized.add(partner_idx)
 
+        if checkpoint_path and len(summarized) % 16 == 0:
+            tree.dump(checkpoint_path)
+
+    if together_pool is not None:
+        failed = []
+        completed = 0
+        try:
+            for future in as_completed(pending_together):
+                node, partner_node = pending_together[future]
+                try:
+                    raw = future.result()
+                except Exception as exc:
+                    failed.append((node.id, exc))
+                    continue
+                match = re.search(r"\(start\)(.*?)\(end\)", raw, re.I | re.S)
+                summary = match.group(1).strip() if match else raw.strip()
+                node.summary = summary
+                if partner_node:
+                    partner_node.summary = summary
+                completed += 1
+                if checkpoint_path and completed % 8 == 0:
+                    tree.dump(checkpoint_path)
+        finally:
+            together_pool.shutdown(wait=True)
+        if failed:
+            if checkpoint_path:
+                tree.dump(checkpoint_path)
+            details = ", ".join(
+                f"node {node_id}: {error}" for node_id, error in failed
+            )
+            raise RuntimeError(
+                f"Together failed to summarize {len(failed)} nodes: {details}"
+            )
+
+    if checkpoint_path:
+        tree.dump(checkpoint_path)
+
     # tree.dump("similar_64_sonnet_sumv5_4o-mini_evalv1.json")         # keep JSON current
     # print(f"Succesfully populated Level L{level} in the excel sheet")
     level+=1
@@ -1115,4 +1221,3 @@ def get_entail_2_score(tree: Tree, level_idx: int):
             checked.add(node.id)
             checked.add(node.match)
     return entail_2s
-

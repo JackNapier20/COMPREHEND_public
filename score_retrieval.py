@@ -1,10 +1,6 @@
-import ast, json, io, requests
-import pandas as pd
-from datasets import load_dataset
-from tqdm import tqdm
-from tree import Tree
-# import unicodedata
 import editdistance
+import pandas as pd
+from tqdm import tqdm
 
 
 def add_scores(tree, score_file):
@@ -12,20 +8,31 @@ def add_scores(tree, score_file):
     score_db = pd.read_csv(score_file)
     instructions = score_db['instructions']
     score_cols = [c for c in score_db.columns if c.startswith("score_")]
+    exact_rows = {}
+    for idx, instruction in instructions.items():
+        if isinstance(instruction, str):
+            exact_rows.setdefault(instruction, idx)
 
     for node in tqdm(base_level, desc="Attaching scores to leaf nodes"):
         prompt = node.prompt
-        min_dist = float('inf')
-        min_scores = {col: None for col in score_cols}
+        exact_idx = exact_rows.get(prompt)
+        if exact_idx is not None:
+            min_scores = {
+                col: score_db.at[exact_idx, col]
+                for col in score_cols
+            }
+        else:
+            min_dist = float('inf')
+            min_scores = {col: None for col in score_cols}
 
-        for idx, instruction in enumerate(instructions):
-            dist = editdistance.eval(prompt, instruction)
-            if dist < min_dist:
-                min_dist = dist
-                for col in score_cols:
-                    min_scores[col] = score_db[col][idx]
-                if min_dist == 0:
-                    break
+            for idx, instruction in enumerate(instructions):
+                dist = editdistance.eval(prompt, instruction)
+                if dist < min_dist:
+                    min_dist = dist
+                    for col in score_cols:
+                        min_scores[col] = score_db[col][idx]
+                    if min_dist == 0:
+                        break
 
         node.wb_scores = {
             col: (float(v) if v is not None and not pd.isna(v) else 5.0)

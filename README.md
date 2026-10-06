@@ -51,7 +51,10 @@ would silently attach scores from the wrong dataset.
 
 Which provider handles each pipeline role is set in `MODEL_CONFIG`
 (`blossom`, `summary_generation`, `evaluation`), each one of
-`"openai" | "claude" | "gemma" | "gemini"`.
+`"openai" | "claude" | "gemma" | "gemini" | "together"`. The Together
+provider uses the OpenAI-compatible endpoint and reads `TOGETHER_API_KEY` and
+`TOGETHER_MODEL` from `.env`; the provider roles can be overridden with
+`BLOSSOM_PROVIDER`, `SUMMARY_GENERATION_PROVIDER`, and `EVALUATION_PROVIDER`.
 
 All commands must be run from the repository root.
 
@@ -71,14 +74,20 @@ records which providers built it (`method`, `blossom`, `summary_generation`,
 `evaluation`). An existing blossom copy is resumed rather than rebuilt.
 
 **Blossom** (`--method blossom`) loads `DATA_FILE` (a base JSON with one level of leaf prompts), then per level:
-finds each node's third-nearest neighbor, pairs nodes with maximum-weight
-matching, generates a common summary per pair (regenerating once if the
+pairs nodes with maximum-weight matching, resolves a specificity outsider
+that explicitly excludes the selected match, generates a common summary per pair (regenerating once if the
 weakest entailment score is at or below 0.4), judges every summary
 (entailment, faithfulness, informativeness, plus a specificity pass against
 the third neighbor), records per-level statistics, promotes winners to the
 next level, and reassigns eligible third neighbors as additional children.
 The tree is saved back to the `_blossom` copy after every level, so an
 interrupted run keeps all completed levels.
+
+At leaf level, Blossom extracts one main idea per prompt before matching. Its
+graph edges use `0.8 * text_similarity + 0.2 * main_idea_similarity`, so main
+ideas now affect pair selection rather than serving only as metadata. Text
+embeddings use signature-validated cache files named with the model, level,
+node count, and content hash.
 
 After the root is reached, external scores from `SCORE_FILE` are attached to
 the leaves and averaged up the tree, and the viewer is launched.
@@ -135,6 +144,25 @@ python stats.py eval_outputs/<name>_eval.json [more.json ...]
  `--model` selects the judge
 provider (default `openai`; `main.py score` uses `MODEL_CONFIG["evaluation"]`);
 `--samples` and `--seed` control the leaf sampling.
+
+### Run ablations
+
+```bash
+python -m ablations.runner Results/UF_random_prompts_64_base.json \
+  --ablation 1 --output-dir ablation_outputs/random \
+  --score-file dataset_UF_with_scores.csv --posthoc-eval
+```
+
+The standalone runner implements ablations 1-9 without modifying the base
+tree. See `ablations/README.md` for the matrix of hierarchy, leaf
+representation, pairing, regeneration, and reassignment choices.
+
+### Run the weakness-report workflow
+
+`agentic/workflow.py` generates a score-grounded weakness report from internal
+nodes, predicts leaf scores from one or more hierarchy reports, and computes
+MAE/RMSE/exact accuracy/Pearson correlation against attached leaf scores. See
+`agentic/README.md` for the three CLI stages and examples.
 
 ### Re-run the in-pipeline judging
 
