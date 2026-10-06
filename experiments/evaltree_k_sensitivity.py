@@ -137,6 +137,18 @@ def _base_config(
 
 
 def _write_complete(tree: Tree, path: Path) -> None:
+    if MODEL_CONFIG["summary_generation"] == "gemma":
+        invalid = [
+            node.id for level in tree.levels[1:] for node in level.nodes
+            if not (node.summary or node.prompt)
+            or (node.summary or node.prompt).strip().lower() == "unknown capability"
+            or (node.summary or node.prompt).startswith("Error:")
+        ]
+        if invalid:
+            raise RuntimeError(
+                f"Gemma produced missing/error summaries for nodes {invalid[:10]}; "
+                "the tree will not be marked complete. Inspect model output before rerunning."
+            )
     tree.config["status"] = "complete"
     tree.dump(path)
 

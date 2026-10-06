@@ -38,7 +38,18 @@ class GemmaExperimentConfigTests(unittest.TestCase):
             self.assertTrue(runner._is_complete(path, first))
             self.assertFalse(runner._is_complete(path, second))
 
-    def test_rejects_unconfigured_served_model(self):
+    def test_unknown_summary_is_not_marked_complete(self):
+        with patch.dict(runner.MODEL_CONFIG, {"summary_generation": "gemma"}), \
+                tempfile.TemporaryDirectory() as tmp_dir:
+            tree = self.source()
+            tree.levels.append(Level(level=1, nodes=[
+                Node(id=1, prompt="Unknown capability", summary="Unknown capability"),
+            ]))
+            with self.assertRaisesRegex(RuntimeError, "not be marked complete"):
+                runner._write_complete(tree, Path(tmp_dir) / "tree.json")
+            self.assertNotEqual(tree.config.get("status"), "complete")
+
+    def test_rejects_unconfigured_served_model_name(self):
         with patch.dict(runner.MODEL_CONFIG, {"summary_generation": "gemma"}), \
                 patch.dict(runner.API_KEYS, {"gemma": {"model": "<MODEL>"}}):
             with self.assertRaisesRegex(ValueError, "Configure the served model"):

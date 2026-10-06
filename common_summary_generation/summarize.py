@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import anthropic
 from tree import Tree
 from openai import OpenAI 
-from llm_utils import anthropic_text, openai_chat_text, together_chat_text
+from llm_utils import anthropic_text, gemma_chat_text, openai_chat_text, together_chat_text
 from common_summary_generation.prompt_variants import (
     CURRENT_VARIANT,
     apply_summary_prompt_variant,
@@ -43,8 +43,8 @@ def generate_summary(tree: Tree, level_idx: int, threshold=0, model_name="openai
     summarized = set()
     pending_together = {}
     together_workers = (
-        max(1, int(api_keys["together"].get("concurrency", 1)))
-        if model_name == "together"
+        max(1, int(api_keys[model_name].get("concurrency", 1)))
+        if model_name in ("together", "gemma")
         else 1
     )
     together_pool = (
@@ -1119,21 +1119,19 @@ Prompt B: {story2}
                 continue
             raw = _together_summary_text(api_keys["together"], messages)
         elif model_name == "gemma":
-            client = OpenAI(
-                api_key=api_keys["gemma"]["api_key"],
-                base_url=api_keys["gemma"]["base_url"]
-            )
-            response = client.chat.completions.create(
-                model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                max_tokens=1024,
-                stop=["<end_of_turn>"],  # IMPORTANT: never stop on "(end)" -- the
-                                          # extraction regex needs it in the output
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt14}
-                ]
-            )
-            raw = response.choices[0].message.content.strip()
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt14}
+            ]
+            if together_pool is not None:
+                future = together_pool.submit(
+                    gemma_chat_text, api_keys["gemma"], messages=messages
+                )
+                pending_together[future] = (node, partner_node)
+                summarized.add(idx)
+                summarized.add(partner_idx)
+                continue
+            raw = gemma_chat_text(api_keys["gemma"], messages=messages)
         elif model_name == "gemini":
             client = OpenAI(
                 api_key=api_keys["gemini"]["api_key"],
@@ -1201,7 +1199,7 @@ Prompt B: {story2}
                 f"node {node_id}: {error}" for node_id, error in failed
             )
             raise RuntimeError(
-                f"Together failed to summarize {len(failed)} nodes: {details}"
+                f"{model_name} failed to summarize {len(failed)} nodes: {details}"
             )
 
     if checkpoint_path:

@@ -61,6 +61,24 @@ connection failures for up to ten minutes to allow vLLM to finish loading.
 Set `GEMMA_WAIT_SECONDS` to change this limit. A model-name mismatch or
 authentication error stops immediately. An already-exported `GEMMA_BASE_URL`
 or `GEMMA_MODEL` takes precedence over the value in `.env`.
+Gemma generation uses an explicit `GEMMA_TIMEOUT_SECONDS` deadline (default
+600 seconds), output cap `GEMMA_MAX_TOKENS` (1024), and two same-model attempts.
+Main-task extraction uses `GEMMA_MAIN_IDEA_BATCH_SIZE=2` and
+`GEMMA_MAIN_IDEA_MAX_TOKENS=1024` for batches, with at most 256 output tokens
+for an individual fallback. Completed main-task batches are checkpointed
+immediately and reused after interruption. These settings can be changed in
+`.env`; GPT evaluation still uses its existing configuration.
+`GEMMA_CONCURRENCY` controls parallel main-task and COMPREHEND summary
+requests (default 8). The Slurm script exports this setting; override it with
+`GEMMA_CONCURRENCY=2 sbatch script_gemma_256.sh` when needed. Its EvalTree
+summary worker count is also 8, controlled by `EVALTREE_SUMMARY_MAX_WORKERS`.
+Main-task results are assigned by their original leaf IDs and checkpointed
+as batches finish. On a failed batch, new submissions stop and successful
+in-flight batches are saved before the failure is raised.
+Gemma responses ending at the output-token limit are rejected, and trees
+with missing/error summaries are not marked complete. The endpoint debug
+script prints the actual response and finish reason to check model behavior
+before a full run, particularly if server logs contain detokenization warnings.
 
 For a standalone endpoint test with one real model response:
 

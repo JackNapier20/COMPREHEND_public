@@ -21,7 +21,9 @@ export SUMMARY_GENERATION_PROVIDER=gemma
 export EVALUATION_PROVIDER=openai
 export INTERNAL_EVAL_MAX_WORKERS="${INTERNAL_EVAL_MAX_WORKERS:-6}"
 export POSTHOC_MAX_WORKERS="${POSTHOC_MAX_WORKERS:-6}"
-export EVALTREE_SUMMARY_MAX_WORKERS="${EVALTREE_SUMMARY_MAX_WORKERS:-1}"
+export EVALTREE_SUMMARY_MAX_WORKERS="${EVALTREE_SUMMARY_MAX_WORKERS:-8}"
+# Concurrent Gemma requests for main ideas and pair summaries.
+export GEMMA_CONCURRENCY="${GEMMA_CONCURRENCY:-8}"
 
 if [[ ! -f myenv/bin/activate ]]; then
     python3 -m venv myenv

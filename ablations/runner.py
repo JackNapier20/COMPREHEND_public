@@ -149,6 +149,7 @@ def run_blossom(
                     use_custom_score=custom,
                     llm_model_name=MODEL_CONFIG["blossom"],
                     api_keys=API_KEYS,
+                    checkpoint_path=output_path,
                 )
 
             # Specificity compares original prompts and excludes the match.

@@ -7,8 +7,9 @@ import json
 import re
 import torch
 import anthropic
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
-from llm_utils import anthropic_text, together_chat_text
+from llm_utils import anthropic_text, gemma_chat_text, together_chat_text
 from retrieval.embedding_cache import load_or_create_embeddings
 from retrieval.similarity import blend_similarities
 
@@ -97,7 +98,7 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
     - If `text` is a string: returns a single string.
     - If `text` is a list of strings: returns a list of strings (batched via JSON prompt).
 
-    Provider/model switching is still done by editing the `client...create(...)` call(s) below.
+    Provider and served model settings come from the supplied configuration.
     """
 
     # --- batched path ---
@@ -156,19 +157,14 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                     ],
                 )
             elif llm_model_name == "gemma":
-                client = OpenAI(
-                    api_key=api_keys["gemma"]["api_key"],
-                    base_url=api_keys["gemma"]["base_url"]
-                )
-                resp = client.chat.completions.create(
-                    model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                    stop=["<end_of_turn>"],
+                raw = gemma_chat_text(
+                    api_keys["gemma"],
+                    max_tokens=int(api_keys["gemma"].get("main_idea_max_tokens", 1024)),
                     messages=[
                         {"role": "system", "content": "You are a professional editor. Follow instructions exactly."},
                         {"role": "user", "content": mainIdeaExtractBatchPrompt.format(payload=payload)},
                     ],
                 )
-                raw = resp.choices[0].message.content.strip()
             elif llm_model_name == "gemini":
                 client = OpenAI(
                     api_key=api_keys["gemini"]["api_key"],
@@ -249,19 +245,14 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
             ],
         )
     elif llm_model_name == "gemma":
-        client = OpenAI(
-            api_key=api_keys["gemma"]["api_key"],
-            base_url=api_keys["gemma"]["base_url"]
-        )
-        resp = client.chat.completions.create(
-            model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                    stop=["<end_of_turn>"],
+        return gemma_chat_text(
+            api_keys["gemma"],
+            max_tokens=min(256, int(api_keys["gemma"].get("main_idea_max_tokens", 1024))),
             messages=[
                 {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
                 {"role": "user", "content": mainIdeaExtractPrompt.format(txt=text)},
             ]
         )
-        return resp.choices[0].message.content.strip()
     elif llm_model_name == "gemini":
         client = OpenAI(
             api_key=api_keys["gemini"]["api_key"],
@@ -291,7 +282,8 @@ def load_model(model_name='all-mpnet-base-v2', *, use_cuda: bool = False):
         pass
     return m
 
-def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None):
+def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None,
+                       checkpoint_callback=None):
     """Populate and return leaf main ideas, reusing values already on nodes."""
     ideas = [None] * len(nodes)
     missing_positions = []
@@ -303,17 +295,69 @@ def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None):
             missing_positions.append(pos)
             missing_texts.append(node.prompt or "")
 
-    if missing_texts:
-        extracted = _extract_main_idea_llm(
-            missing_texts,
-            batch_size=8,
+    batch_size = (
+        int(api_keys["gemma"].get("main_idea_batch_size", 2))
+        if llm_model_name == "gemma" else 8
+    )
+    if batch_size < 1:
+        raise ValueError("Main-idea batch size must be positive")
+    workers = (
+        max(1, int(api_keys["gemma"].get("concurrency", 1)))
+        if llm_model_name == "gemma" else 1
+    )
+    starts = range(0, len(missing_texts), batch_size)
+
+    def extract(start):
+        return _extract_main_idea_llm(
+            missing_texts[start:start + batch_size],
+            batch_size=batch_size,
             llm_model_name=llm_model_name,
             api_keys=api_keys,
         )
-        for pos, idea in zip(missing_positions, extracted):
+
+    def save_batch(start, extracted):
+        positions = missing_positions[start:start + batch_size]
+        if len(extracted) != len(positions):
+            raise ValueError("Main-idea response count does not match its input batch")
+        for pos, idea in zip(positions, extracted):
             cleaned = idea.strip() or "Unknown main idea"
             nodes[pos].mainIdea = cleaned
             ideas[pos] = cleaned
+        if checkpoint_callback is not None:
+            checkpoint_callback()
+
+    if workers <= 1:
+        for start in starts:
+            save_batch(start, extract(start))
+    else:
+        # Workers only produce text; the main thread assigns leaf IDs and saves.
+        remaining = iter(starts)
+        failures = []
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            pending = {}
+            for _ in range(workers):
+                start = next(remaining, None)
+                if start is None:
+                    break
+                pending[executor.submit(extract, start)] = start
+            while pending:
+                completed, _ = wait(pending, return_when=FIRST_COMPLETED)
+                for future in completed:
+                    start = pending.pop(future)
+                    try:
+                        extracted = future.result()
+                    except Exception as exc:
+                        failures.append(exc)
+                    else:
+                        save_batch(start, extracted)
+                if not failures:
+                    for _ in completed:
+                        start = next(remaining, None)
+                        if start is None:
+                            break
+                        pending[executor.submit(extract, start)] = start
+        if failures:
+            raise failures[0]
 
     return [idea or "Unknown main idea" for idea in ideas]
 
@@ -326,6 +370,7 @@ def get_nearest_neighbors_blossom(
     use_custom_score: bool = True,
     llm_model_name: str = "openai",
     api_keys: dict = None,
+    checkpoint_path=None,
 ):
     model = load_model(model_name, use_cuda=USE_CUDA)
     level = tree.levels[level_idx]
@@ -382,10 +427,22 @@ def get_nearest_neighbors_blossom(
     combined_similarity_matrix = similarity_matrix
     if do_custom:
         active_nodes = [level.nodes[idx] for idx in active_idxs]
+        if llm_model_name == "gemma":
+            tree.config["gemma_generation_config"] = {
+                key: api_keys["gemma"].get(key, default)
+                for key, default in (
+                    ("max_tokens", 1024), ("timeout_seconds", 600),
+                    ("main_idea_max_tokens", 1024), ("main_idea_batch_size", 2),
+                    ("concurrency", 1),
+                )
+            }
         ideas = extract_main_ideas(
             active_nodes,
             llm_model_name=llm_model_name,
             api_keys=api_keys,
+            checkpoint_callback=(
+                (lambda: tree.dump(checkpoint_path)) if checkpoint_path is not None else None
+            ),
         )
         idea_embeddings = model.encode(
             ideas,

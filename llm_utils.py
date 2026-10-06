@@ -8,7 +8,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from openai import OpenAI
+from openai import OpenAI, Timeout
 
 
 API_TIMEOUT_SECONDS = float(os.environ.get("LLM_API_TIMEOUT_SECONDS", "120"))
@@ -78,15 +78,26 @@ def anthropic_text(client, *, attempts: int = 3, **request) -> str:
     raise RuntimeError(f"Anthropic call failed after {attempts} attempts") from last_error
 
 
-def openai_chat_text(client, *, attempts: int = 3, **request) -> str:
+def openai_chat_text(client, *, attempts: int = 3,
+                     timeout_seconds: float | None = None,
+                     reject_truncated: bool = False, **request) -> str:
     """Return OpenAI-compatible chat text with bounded empty/error retries."""
     last_error = None
     for attempt in range(1, attempts + 1):
         try:
-            response = call_with_deadline(client.chat.completions.create, **request)
+            response = call_with_deadline(
+                client.chat.completions.create,
+                timeout_seconds=timeout_seconds,
+                **request,
+            )
             choice = response.choices[0]
             text = (choice.message.content or "").strip()
             if text:
+                if reject_truncated and getattr(choice, "finish_reason", None) == "length":
+                    raise RuntimeError(
+                        "Local model reached the output-token limit without finishing; "
+                        "inspect its response, EOS settings, and chat template."
+                    )
                 return text
             reasoning = getattr(choice.message, "reasoning_content", "") or ""
             last_error = RuntimeError(
@@ -100,6 +111,30 @@ def openai_chat_text(client, *, attempts: int = 3, **request) -> str:
             print(f"OpenAI call attempt {attempt} failed: {last_error}; retrying")
             time.sleep(2 ** (attempt - 1))
     raise RuntimeError(f"OpenAI call failed after {attempts} attempts") from last_error
+
+
+def gemma_chat_text(config: dict, *, messages: list[dict],
+                    max_tokens: int | None = None, attempts: int = 2) -> str:
+    """Bound local generation output and retry through the same served model."""
+    model = config.get("model", "gemma-3-finetuned-merged-bf16")
+    timeout = float(config.get("timeout_seconds", 600))
+    token_limit = int(max_tokens if max_tokens is not None else config.get("max_tokens", 1024))
+    if timeout <= 0 or token_limit <= 0:
+        raise ValueError("Gemma timeout and output-token limit must be positive")
+    client = OpenAI(
+        api_key=config.get("api_key", "DUMMY"),
+        base_url=config["base_url"],
+        timeout=Timeout(timeout, connect=min(10.0, timeout)),
+        max_retries=0,
+    )
+    try:
+        return openai_chat_text(
+            client, attempts=attempts, timeout_seconds=timeout, reject_truncated=True,
+            model=model, messages=messages, max_tokens=token_limit,
+            stop=["<end_of_turn>"],
+        )
+    finally:
+        client.close()
 
 
 def together_chat_text(config: dict, *, messages: list[dict], attempts: int = 3,
