@@ -65,7 +65,7 @@ API_KEYS = {
         "max_tokens": int(os.environ.get("GEMMA_MAX_TOKENS", "1024")),
         "timeout_seconds": float(os.environ.get("GEMMA_TIMEOUT_SECONDS", "600")),
         "main_idea_max_tokens": int(os.environ.get("GEMMA_MAIN_IDEA_MAX_TOKENS", "1024")),
-        "main_idea_batch_size": int(os.environ.get("GEMMA_MAIN_IDEA_BATCH_SIZE", "2")),
+        "main_idea_batch_size": int(os.environ.get("GEMMA_MAIN_IDEA_BATCH_SIZE", "1")),
         # in-flight requests; vLLM batches them on the server GPU
         "concurrency": int(os.environ.get("GEMMA_CONCURRENCY", "8")),
     },

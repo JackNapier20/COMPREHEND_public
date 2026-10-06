@@ -49,6 +49,30 @@ class GemmaExperimentConfigTests(unittest.TestCase):
                 runner._write_complete(tree, Path(tmp_dir) / "tree.json")
             self.assertNotEqual(tree.config.get("status"), "complete")
 
+    def test_changed_request_policy_cannot_reuse_an_old_completed_tree(self):
+        with patch.dict(runner.MODEL_CONFIG, {
+            "blossom": "gemma", "summary_generation": "gemma", "evaluation": "openai",
+        }), patch.dict(runner.API_KEYS, {"gemma": {"model": "gemma-v4"}}):
+            expected = self.config()
+            policy = expected["gemma_generation_policy"]
+            self.assertEqual(policy["temperature"], 0)
+            self.assertFalse(policy["ignore_eos"])
+            self.assertEqual(policy["main_idea_batch_size"], 1)
+            self.assertTrue(policy["request_version"])
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                path = Path(tmp_dir) / "complete_tree.json"
+                tree = self.source()
+                tree.config = {**expected, "status": "complete"}
+                tree.config.pop("gemma_generation_policy")
+                tree.dump(path)
+                self.assertFalse(runner._is_complete(path, expected))
+                self.assertFalse(runner._is_compatible(path, expected))
+
+    def test_non_gemma_config_is_unchanged(self):
+        with patch.dict(runner.MODEL_CONFIG, {
+            "blossom": "claude", "summary_generation": "claude", "evaluation": "openai",
+        }):
+            self.assertNotIn("gemma_generation_policy", self.config())
     def test_rejects_unconfigured_served_model_name(self):
         with patch.dict(runner.MODEL_CONFIG, {"summary_generation": "gemma"}), \
                 patch.dict(runner.API_KEYS, {"gemma": {"model": "<MODEL>"}}):

@@ -30,6 +30,7 @@ from ablations.runner import prepare_leaves, run_blossom, run_evaltree
 from evaluation.evaluate import evaluate_tree_file
 from experiments.reporting import collect_result, write_reports
 from main import API_KEYS, MODEL_CONFIG
+from llm_utils import GEMMA_REQUEST_VERSION
 from tree import Tree
 from common_summary_generation.prompt_variants import CURRENT_VARIANT, VALID_VARIANTS
 
@@ -133,6 +134,14 @@ def _base_config(
     if main_idea_seed_tree is not None:
         config["main_idea_seed_tree"] = str(main_idea_seed_tree.resolve())
         config["main_idea_seed_sha256"] = _sha256(main_idea_seed_tree)
+    if "gemma" in (MODEL_CONFIG["blossom"], MODEL_CONFIG["summary_generation"]):
+        config["gemma_generation_policy"] = {
+            "request_version": GEMMA_REQUEST_VERSION,
+            "temperature": 0,
+            "ignore_eos": False,
+            "stop": ["<end_of_turn>"],
+            "main_idea_batch_size": int(API_KEYS["gemma"].get("main_idea_batch_size", 1)),
+        }
     return config
 
 

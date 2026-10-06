@@ -12,6 +12,7 @@ from openai import OpenAI, Timeout
 
 
 API_TIMEOUT_SECONDS = float(os.environ.get("LLM_API_TIMEOUT_SECONDS", "120"))
+GEMMA_REQUEST_VERSION = "greedy-user-turn-v1"
 
 
 class APICallTimeoutError(TimeoutError):
@@ -96,7 +97,8 @@ def openai_chat_text(client, *, attempts: int = 3,
                 if reject_truncated and getattr(choice, "finish_reason", None) == "length":
                     raise RuntimeError(
                         "Local model reached the output-token limit without finishing; "
-                        "inspect its response, EOS settings, and chat template."
+                        "inspect its response, EOS settings, and chat template. "
+                        f"Response preview: {text[:240]!r}"
                     )
                 return text
             reasoning = getattr(choice.message, "reasoning_content", "") or ""
@@ -121,6 +123,17 @@ def gemma_chat_text(config: dict, *, messages: list[dict],
     token_limit = int(max_tokens if max_tokens is not None else config.get("max_tokens", 1024))
     if timeout <= 0 or token_limit <= 0:
         raise ValueError("Gemma timeout and output-token limit must be positive")
+    # Keep the instructions, but use the same user-turn format as the working probe.
+    messages = [dict(message) for message in messages]
+    instructions = []
+    while messages and messages[0].get("role") == "system":
+        instructions.append(messages.pop(0)["content"])
+    if instructions:
+        if not messages or messages[0].get("role") != "user":
+            raise ValueError("Gemma system instructions must precede a user message")
+        if not all(isinstance(text, str) for text in [*instructions, messages[0]["content"]]):
+            raise ValueError("Gemma instruction folding requires text messages")
+        messages[0]["content"] = "\n\n".join([*instructions, messages[0]["content"]])
     client = OpenAI(
         api_key=config.get("api_key", "DUMMY"),
         base_url=config["base_url"],
@@ -131,7 +144,7 @@ def gemma_chat_text(config: dict, *, messages: list[dict],
         return openai_chat_text(
             client, attempts=attempts, timeout_seconds=timeout, reject_truncated=True,
             model=model, messages=messages, max_tokens=token_limit,
-            stop=["<end_of_turn>"],
+            temperature=0, stop=["<end_of_turn>"], extra_body={"ignore_eos": False},
         )
     finally:
         client.close()

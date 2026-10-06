@@ -9,7 +9,7 @@ import torch
 import anthropic
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
-from llm_utils import anthropic_text, gemma_chat_text, together_chat_text
+from llm_utils import GEMMA_REQUEST_VERSION, anthropic_text, gemma_chat_text, together_chat_text
 from retrieval.embedding_cache import load_or_create_embeddings
 from retrieval.similarity import blend_similarities
 
@@ -110,6 +110,11 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
         for start in range(0, len(text), batch_size):
             print(f"Extracting main ideas for batch {start} to {min(start + batch_size, len(text))}...")
             chunk = text[start:start + batch_size]
+            if llm_model_name == "gemma" and len(chunk) == 1:
+                out.append(_extract_main_idea_llm(
+                    chunk[0], llm_model_name=llm_model_name, api_keys=api_keys,
+                ).strip())
+                continue
             payload = json.dumps({"texts": chunk}, ensure_ascii=False)
 
             if llm_model_name == "openai":
@@ -245,12 +250,17 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
             ],
         )
     elif llm_model_name == "gemma":
+        prompt = (
+            "You will be given a text. Extract the single most important main idea "
+            "in one short sentence.\nReturn only that sentence.\n"
+            f"Text:\n{text}"
+        )
         return gemma_chat_text(
             api_keys["gemma"],
             max_tokens=min(256, int(api_keys["gemma"].get("main_idea_max_tokens", 1024))),
             messages=[
                 {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                {"role": "user", "content": mainIdeaExtractPrompt.format(txt=text)},
+                {"role": "user", "content": prompt},
             ]
         )
     elif llm_model_name == "gemini":
@@ -296,7 +306,7 @@ def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None,
             missing_texts.append(node.prompt or "")
 
     batch_size = (
-        int(api_keys["gemma"].get("main_idea_batch_size", 2))
+        int(api_keys["gemma"].get("main_idea_batch_size", 1))
         if llm_model_name == "gemma" else 8
     )
     if batch_size < 1:
@@ -429,12 +439,17 @@ def get_nearest_neighbors_blossom(
         active_nodes = [level.nodes[idx] for idx in active_idxs]
         if llm_model_name == "gemma":
             tree.config["gemma_generation_config"] = {
-                key: api_keys["gemma"].get(key, default)
-                for key, default in (
-                    ("max_tokens", 1024), ("timeout_seconds", 600),
-                    ("main_idea_max_tokens", 1024), ("main_idea_batch_size", 2),
-                    ("concurrency", 1),
-                )
+                "request_version": GEMMA_REQUEST_VERSION,
+                "temperature": 0,
+                "ignore_eos": False,
+                **{
+                    key: api_keys["gemma"].get(key, default)
+                    for key, default in (
+                        ("max_tokens", 1024), ("timeout_seconds", 600),
+                        ("main_idea_max_tokens", 1024), ("main_idea_batch_size", 1),
+                        ("concurrency", 1),
+                    )
+                },
             }
         ideas = extract_main_ideas(
             active_nodes,

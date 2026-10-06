@@ -63,7 +63,12 @@ authentication error stops immediately. An already-exported `GEMMA_BASE_URL`
 or `GEMMA_MODEL` takes precedence over the value in `.env`.
 Gemma generation uses an explicit `GEMMA_TIMEOUT_SECONDS` deadline (default
 600 seconds), output cap `GEMMA_MAX_TOKENS` (1024), and two same-model attempts.
-Main-task extraction uses `GEMMA_MAIN_IDEA_BATCH_SIZE=2` and
+Gemma requests explicitly use temperature 0, preserve system instructions in
+the first user turn, and send `ignore_eos=false` and the `<end_of_turn>` stop.
+Main-task extraction defaults to `GEMMA_MAIN_IDEA_BATCH_SIZE=1`, which calls
+individual plain-text extraction without requiring a JSON array. Set a size
+of 2 or more only after confirming the model follows the batched JSON format.
+It uses
 `GEMMA_MAIN_IDEA_MAX_TOKENS=1024` for batches, with at most 256 output tokens
 for an individual fallback. Completed main-task batches are checkpointed
 immediately and reused after interruption. These settings can be changed in
@@ -98,6 +103,24 @@ For the pipeline's input and server readiness checks:
 ```bash
 python -u -m experiments.local_model_preflight
 ```
+
+Then exercise the actual main-idea, EvalTree summary, and COMPREHEND current
+few-shot summary paths on two toy inputs:
+
+```bash
+GEMMA_MAIN_IDEA_BATCH_SIZE=1 python -u -m experiments.gemma_smoke_test \
+  --base-url http://YOUR_MODEL_SERVER:5050/v1 \
+  --model YOUR_EXACT_SERVED_MODEL_NAME
+```
+
+This uses only Gemma and writes no artifacts. With batch size 1 and no retries,
+there are four generation requests. Inspect every printed result for coherence;
+a successful endpoint response does not prove the longer pipeline prompts work.
+`--main-idea-batch-size 2` can separately test JSON batching. Keep the same
+`GEMMA_MAIN_IDEA_BATCH_SIZE` in the full run as in the successful smoke test.
+The generation policy is recorded in comparison cache identities; older
+server-default-sampling artifacts are not compatible. After a request-policy
+change, use a new `GEMMA_RUN_TAG` to retain failed/partial prior runs untouched.
 
 Submit from the repository root so Slurm can open its log files:
 

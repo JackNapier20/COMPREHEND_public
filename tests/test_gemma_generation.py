@@ -42,9 +42,39 @@ class GemmaGenerationTests(unittest.TestCase):
             self.assertEqual(request.kwargs["model"], "gemma-v4")
             self.assertEqual(request.kwargs["max_tokens"], 512)
             self.assertEqual(request.kwargs["stop"], ["<end_of_turn>"])
+            self.assertEqual(request.kwargs["temperature"], 0)
+            self.assertEqual(request.kwargs["extra_body"], {"ignore_eos": False})
         for invocation in deadline.call_args_list:
             self.assertEqual(invocation.kwargs["timeout_seconds"], 600)
         client.close.assert_called_once()
+
+    @patch("llm_utils.OpenAI")
+    def test_system_instructions_are_folded_without_mutating_messages(self, openai):
+        messages = [
+            {"role": "system", "content": "Follow instructions exactly."},
+            {"role": "system", "content": "Return a common capability."},
+            {"role": "user", "content": "task A and task B"},
+            {"role": "assistant", "content": "previous answer"},
+            {"role": "user", "content": "next task"},
+        ]
+        openai.return_value.chat.completions.create.return_value = self.response
+        gemma_chat_text(self.config, messages=messages)
+        sent = openai.return_value.chat.completions.create.call_args.kwargs["messages"]
+        self.assertEqual(sent, [
+            {"role": "user", "content": (
+                "Follow instructions exactly.\n\nReturn a common capability.\n\ntask A and task B"
+            )},
+            {"role": "assistant", "content": "previous answer"},
+            {"role": "user", "content": "next task"},
+        ])
+        self.assertEqual(len(messages), 5)
+        self.assertEqual(messages[2]["content"], "task A and task B")
+
+    @patch("llm_utils.OpenAI")
+    def test_system_only_input_fails_before_api_call(self, openai):
+        with self.assertRaisesRegex(ValueError, "precede a user"):
+            gemma_chat_text(self.config, messages=[{"role": "system", "content": "prompt"}])
+        openai.assert_not_called()
 
     @patch("llm_utils.time.sleep")
     @patch("llm_utils.OpenAI")
@@ -67,6 +97,7 @@ class GemmaGenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "after 2 attempts") as failure:
             gemma_chat_text(self.config, messages=[{"role": "user", "content": "prompt"}])
         self.assertIn("output-token limit", str(failure.exception.__cause__))
+        self.assertIn("unfinished summary", str(failure.exception.__cause__))
         client.close.assert_called_once()
 
     @patch("retrieval.blossom_matching.gemma_chat_text")
@@ -81,6 +112,44 @@ class GemmaGenerationTests(unittest.TestCase):
         ), "idea C")
         self.assertEqual(generate.call_args_list[0].kwargs["max_tokens"], 768)
         self.assertEqual(generate.call_args_list[1].kwargs["max_tokens"], 256)
+        self.assertEqual(generate.call_args_list[1].kwargs["messages"][1]["content"], (
+            "You will be given a text. Extract the single most important main idea "
+            "in one short sentence.\nReturn only that sentence.\nText:\nC"
+        ))
+
+    @patch("retrieval.blossom_matching.gemma_chat_text")
+    def test_one_item_batches_use_plain_text_without_json_round_trip(self, generate):
+        generate.side_effect = ["idea A", "idea B", "idea C"]
+        ideas = _extract_main_idea_llm(
+            ["A", "B", "C"], batch_size=1,
+            llm_model_name="gemma", api_keys={"gemma": self.config},
+        )
+        self.assertEqual(ideas, ["idea A", "idea B", "idea C"])
+        self.assertEqual(generate.call_count, 3)
+        for request in generate.call_args_list:
+            self.assertEqual(request.kwargs["max_tokens"], 256)
+            self.assertNotIn("JSON", request.kwargs["messages"][1]["content"])
+
+    @patch("retrieval.blossom_matching.gemma_chat_text")
+    def test_final_single_item_of_larger_batch_uses_plain_text(self, generate):
+        generate.side_effect = ['["idea A", "idea B"]', "idea C"]
+        ideas = _extract_main_idea_llm(
+            ["A", "B", "C"], batch_size=2,
+            llm_model_name="gemma", api_keys={"gemma": self.config},
+        )
+        self.assertEqual(ideas, ["idea A", "idea B", "idea C"])
+        self.assertIn("JSON", generate.call_args_list[0].kwargs["messages"][1]["content"])
+        self.assertNotIn("JSON", generate.call_args_list[1].kwargs["messages"][1]["content"])
+
+    @patch("retrieval.blossom_matching._extract_main_idea_llm")
+    def test_default_gemma_main_idea_batches_are_single_item(self, extract):
+        extract.side_effect = lambda texts, **_: [f"idea {text}" for text in texts]
+        nodes = [Node(id=index, prompt=text) for index, text in enumerate("AB")]
+        self.assertEqual(extract_main_ideas(
+            nodes, llm_model_name="gemma", api_keys={"gemma": {"concurrency": 1}},
+        ), ["idea A", "idea B"])
+        self.assertEqual([call.args[0] for call in extract.call_args_list], [["A"], ["B"]])
+        self.assertTrue(all(call.kwargs["batch_size"] == 1 for call in extract.call_args_list))
 
     @patch("retrieval.blossom_matching._extract_main_idea_llm")
     def test_completed_batches_survive_failure_and_are_skipped_on_resume(self, extract):
