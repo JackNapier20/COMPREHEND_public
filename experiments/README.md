@@ -62,7 +62,20 @@ Set `GEMMA_WAIT_SECONDS` to change this limit. A model-name mismatch or
 authentication error stops immediately. An already-exported `GEMMA_BASE_URL`
 or `GEMMA_MODEL` takes precedence over the value in `.env`.
 
-Check readiness alone, without constructing trees or judging prompts:
+For a standalone endpoint test with one real model response:
+
+```bash
+python -u debug_gemma_endpoint.py --base-url http://gpu014:5050/v1
+```
+
+This prints the client hostname, lists the served model IDs, then sends one
+short chat prompt to the sole served model. It only requires the `openai`
+package and does not read `.env`; the endpoint comes from `--base-url` and
+the optional authentication key from the `GEMMA_API_KEY` environment variable
+(default `DUMMY`). Use `--model` if the server lists multiple models, or
+`--base-url http://127.0.0.1:5050/v1` when testing on the serving node itself.
+
+For the pipeline's input and server readiness checks:
 
 ```bash
 python -u -m experiments.local_model_preflight
