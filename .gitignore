@@ -30,6 +30,7 @@ agentic_outputs/
 k_sensitivity_outputs/
 specificity_diagnostics_outputs/
 hpc_gemma_outputs/
+finetune_v5_outputs/
 summary_model_outputs_high_reasoning_partial/
 comparison_256_outputs/*_compromised_*/
 slurm-*.out

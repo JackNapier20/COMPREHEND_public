@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import anthropic
 from tree import Tree
 from openai import OpenAI 
-from llm_utils import anthropic_text, gemma_chat_text, openai_chat_text, together_chat_text
+from llm_utils import API_TIMEOUT_SECONDS, anthropic_text, gemma_chat_text, openai_chat_text, together_chat_text
 from common_summary_generation.prompt_variants import (
     CURRENT_VARIANT,
     apply_summary_prompt_variant,
@@ -34,6 +34,14 @@ def _together_summary_text(config, messages):
     """Generate a Together summary through the shared bounded-retry adapter."""
     return together_chat_text(config, messages=messages)
 
+def _claude_summary_text(api_key, system_prompt, user_prompt):
+    """Strict teacher calls have bounded retries and no cross-provider fallback."""
+    with anthropic.Anthropic(api_key=api_key, timeout=API_TIMEOUT_SECONDS, max_retries=0) as client:
+        return anthropic_text(
+            client, model="claude-sonnet-4-6", max_tokens=1024,
+            system=system_prompt, messages=[{"role": "user", "content": user_prompt}],
+        )
+
 def generate_summary(tree: Tree, level_idx: int, threshold=0, model_name="openai",
                      api_keys: dict = None, checkpoint_path=None):
 
@@ -42,11 +50,14 @@ def generate_summary(tree: Tree, level_idx: int, threshold=0, model_name="openai
     level_obj = tree.levels[level_idx]
     summarized = set()
     pending_together = {}
+    strict_claude = model_name == "claude" and tree.config.get("strict_summary_provider", False)
     together_workers = (
         max(1, int(api_keys[model_name].get("concurrency", 1)))
         if model_name in ("together", "gemma")
         else 1
     )
+    if strict_claude:
+        together_workers = max(1, int(os.environ.get("CLAUDE_SUMMARY_MAX_WORKERS", "1")))
     together_pool = (
         ThreadPoolExecutor(max_workers=together_workers)
         if together_workers > 1
@@ -1072,6 +1083,30 @@ Prompt B: {story2}
             )
             raw = response.choices[0].message.content.strip()
         elif model_name == "claude":
+            if strict_claude:
+                if together_pool is not None:
+                    future = together_pool.submit(
+                        _claude_summary_text, api_keys["claude"], system_prompt, prompt14,
+                    )
+                    pending_together[future] = (node, partner_node)
+                    summarized.add(idx)
+                    summarized.add(partner_idx)
+                    continue
+                try:
+                    raw = _claude_summary_text(api_keys["claude"], system_prompt, prompt14)
+                except RuntimeError:
+                    if checkpoint_path:
+                        tree.dump(checkpoint_path)
+                    raise
+                match = re.search(r"\(start\)(.*?)\(end\)", raw, re.I | re.S)
+                node.summary = match.group(1).strip() if match else raw.strip()
+                if partner_node:
+                    partner_node.summary = node.summary
+                summarized.add(idx)
+                summarized.add(partner_idx)
+                if checkpoint_path and len(summarized) % 16 == 0:
+                    tree.dump(checkpoint_path)
+                continue
             client = anthropic.Anthropic(
                 api_key=api_keys["claude"]
             )

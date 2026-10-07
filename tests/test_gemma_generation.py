@@ -308,3 +308,35 @@ class GemmaGenerationTests(unittest.TestCase):
                 api_keys={"gemma": {"main_idea_batch_size": 0}},
             )
         extract.assert_not_called()
+
+    @patch("common_summary_generation.summarize.OpenAI")
+    @patch("common_summary_generation.summarize._claude_summary_text")
+    def test_strict_claude_teacher_failure_has_no_gpt_fallback(self, generate, openai):
+        generate.side_effect = RuntimeError("teacher refused")
+        tree = Tree(levels=[Level(level=0, nodes=[
+            Node(id=0, prompt="A", match=1, score=0.9, alive=True),
+            Node(id=1, prompt="B", match=0, score=0.9, alive=False),
+        ])], config={"strict_summary_provider": True})
+        with patch.dict("os.environ", {"CLAUDE_SUMMARY_MAX_WORKERS": "1"}):
+            with self.assertRaisesRegex(RuntimeError, "teacher refused"):
+                generate_summary(tree, 0, -1.0, model_name="claude", api_keys={"claude": "dummy"})
+        openai.assert_not_called()
+        self.assertNotIn("provider_fallbacks", tree.config)
+
+    @patch("common_summary_generation.summarize._claude_summary_text")
+    def test_parallel_strict_claude_summaries_preserve_pair_assignment(self, generate):
+        generate.side_effect = lambda _key, _system, prompt: "(start)summary of {}(end)".format(
+            re.search(r"pair\d A", prompt).group()
+        )
+        nodes = []
+        for pair in range(3):
+            a, b = 2 * pair, 2 * pair + 1
+            nodes.extend([Node(id=a, prompt=f"pair{pair} A", match=b, score=0.9, alive=True),
+                          Node(id=b, prompt=f"pair{pair} B", match=a, score=0.9, alive=False)])
+        tree = Tree(levels=[Level(level=0, nodes=nodes)], config={"strict_summary_provider": True})
+        with patch.dict("os.environ", {"CLAUDE_SUMMARY_MAX_WORKERS": "3"}):
+            generate_summary(tree, 0, -1.0, model_name="claude", api_keys={"claude": "dummy"})
+        self.assertEqual(generate.call_count, 3)
+        for pair in range(3):
+            self.assertEqual(nodes[2 * pair].summary, f"summary of pair{pair} A")
+            self.assertEqual(nodes[2 * pair].summary, nodes[2 * pair + 1].summary)

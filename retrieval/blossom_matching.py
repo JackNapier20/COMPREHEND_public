@@ -4,12 +4,13 @@ import networkx as nx
 from tree import Tree
 from openai import OpenAI
 import json
+import os
 import re
 import torch
 import anthropic
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
-from llm_utils import GEMMA_REQUEST_VERSION, anthropic_text, gemma_chat_text, together_chat_text
+from llm_utils import API_TIMEOUT_SECONDS, GEMMA_REQUEST_VERSION, anthropic_text, gemma_chat_text, together_chat_text
 from retrieval.embedding_cache import load_or_create_embeddings
 from retrieval.similarity import blend_similarities
 
@@ -146,7 +147,7 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                 raw = resp.choices[0].message.content.strip()
             elif llm_model_name == "claude":
                 client = anthropic.Anthropic(
-                    api_key=api_keys["claude"]
+                    api_key=api_keys["claude"], timeout=API_TIMEOUT_SECONDS, max_retries=0,
                 )
                 raw = anthropic_text(
                     client,
@@ -236,7 +237,7 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
         return resp.choices[0].message.content.strip()
     elif llm_model_name == "claude":
         client = anthropic.Anthropic(
-            api_key=api_keys["claude"]
+            api_key=api_keys["claude"], timeout=API_TIMEOUT_SECONDS, max_retries=0,
         )
         return anthropic_text(
             client,
@@ -322,6 +323,8 @@ def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None,
         max(1, int(api_keys["gemma"].get("concurrency", 1)))
         if llm_model_name == "gemma" else 1
     )
+    if llm_model_name != "gemma":
+        workers = max(1, int(os.environ.get("MAIN_IDEA_MAX_WORKERS", "1")))
     starts = range(0, len(missing_texts), batch_size)
 
     def extract(start):

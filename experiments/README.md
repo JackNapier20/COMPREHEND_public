@@ -36,6 +36,34 @@ is supported by a deliberately selected outsider leaf.
 
 # HPC Gemma comparison on WB256 and UF256
 
+## Fresh WB256 Claude teacher tree for fine-tuning
+
+```bash
+python -m dataset_prep.sample_random_dataset \
+  --source dataset_WB_with_scores.csv --dataset-name "WildBench finetune v5" \
+  --count 256 --seed 42 --output finetune_v5_outputs/WB_train_random_256.json \
+  --exclude WB_new_random_256.json UF_new_random_256.json \
+    comparison_256_outputs/WB_current_k2/evaltree_capability_base.json
+python -u -m experiments.finetune_tree finetune_v5_outputs/WB_train_random_256.json
+```
+
+The sampler excludes exact/normalized evaluation prompts and dataset source IDs,
+as well as current summary demonstrations. Its signed audit is checked again
+before any API calls. The teacher runner forces Claude main ideas and summaries,
+OpenAI construction/post-hoc judges, and no GPT summary fallback. Defaults for
+reassignment, regeneration, two descendant samples and seed 42 remain unchanged.
+Strict Claude summaries and main-idea batches each use four workers, while GPT
+judging uses six; environment variables can lower these limits.
+
+Outputs are separate from evaluation artifacts under `finetune_v5_outputs`.
+The tree retains every node's `mainIdea`; `main_ideas.jsonl` exports all extracted
+ideas and `leaf_main_ideas.jsonl` contains the 256 raw leaf prompt/idea targets
+with their source identities. `sampling_audit.json` and `MANIFEST.json` record
+disjointness and protected-file hashes. This stage does not overwrite any
+existing `finetuneDatasetV5.jsonl` or choose a student chat-template format.
+Rerunning resumes compatible partial/completed trees and evaluations;
+`--export-only` requires existing complete artifacts and makes no API calls.
+
 ## Downloading Gemma 4 for new training runs
 
 `bash download_gemma4.sh` downloads the official `google/gemma-4-31B-it`
