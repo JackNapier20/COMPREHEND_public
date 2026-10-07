@@ -36,6 +36,28 @@ is supported by a deliberately selected outsider leaf.
 
 # HPC Gemma comparison on WB256 and UF256
 
+## Downloading Gemma 4 for new training runs
+
+`bash download_gemma4.sh` downloads the official `google/gemma-4-31B-it`
+repository to `/gypsum/work1/zamani/sivaraaman/models/gemma-4-31B-it`.
+It uses an isolated downloader environment, requires no GPU, and can be rerun
+to resume interrupted downloads. Run on a cluster node where large downloads
+and outbound internet are permitted. Use `HF_TOKEN` or a saved HF login if
+authentication is needed; credentials are not printed or stored in the script.
+
+An optional model ID and destination can select another variant:
+
+```bash
+bash download_gemma4.sh google/gemma-4-26B-A4B-it \
+  /gypsum/work1/zamani/sivaraaman/models/gemma-4-26B-A4B-it
+```
+
+`MODEL_REVISION` can pin a Hub commit for reproducibility. `DOWNLOAD_ROOT`,
+`DOWNLOAD_VENV`, and `PYTHON_BIN` override local paths and the Python executable.
+The downloaded native template must be used for both training and inference.
+Gemma 4 uses different turn tokens and supports native system turns; this
+script does not migrate the Gemma 3-specific pipeline settings or serving stack.
+
 `script_gemma_256.sh` runs COMPREHEND and EvalTree (`k=2`) on WB256,
 then UF256, using Gemma for main-task extraction and parent summaries and
 OpenAI for construction decisions and post-hoc evaluation. It uses the same
