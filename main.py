@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from pathlib import Path
 import argparse
 import json
@@ -26,14 +27,13 @@ from evaluation.evaluate import evaluate_tree_file
 from evaluation.simple_eval import evaluate_common_summary, promote_to_next_level, propagate_attrs_up, record_stat, reassign
 from tree import Tree, Level
 from evaltree.annotate import annotate_tree
-from evaltree.clustering import RecursiveKMeans, build_hierarchy
+from evaltree.clustering import CLUSTERING_EMBEDDING_MODEL, RecursiveKMeans, build_hierarchy
 from evaltree.summarize import summarize_tree
 from evaltree.evaluate import run_evaluation_on_tree as run_evaltree_evaluation
 from retrieval.blossom_matching import get_nearest_neighbors_blossom
 from retrieval.third_neighbor import find_third
 from visualisation.visualise_helper import (
     generate_dag_json_from_tree,
-    generate_json_from_tree,
     launch_tree_viewer,
 )
 from score_retrieval import (
@@ -46,9 +46,11 @@ DATA_FILE = Path("Results/UF_random_prompts_64_base.json")
 SCORE_FILE = "dataset_UF_with_scores.csv"   # for UltraFeedback: dataset_UF_with_scores.csv
 VISUALISE = True                 # flip to False to skip viewer step
 MODEL_CONFIG = {
-    "blossom": "claude",  # Options: "openai", "claude", "gemma", "gemini"
-    "summary_generation": "claude",
-    "evaluation": "openai"  # Options: "openai", "claude", "gemma", "gemini"
+    "blossom": os.environ.get("BLOSSOM_PROVIDER", "claude"),
+    "summary_generation": os.environ.get(
+        "SUMMARY_GENERATION_PROVIDER", "claude"
+    ),
+    "evaluation": os.environ.get("EVALUATION_PROVIDER", "openai"),
 }
 # Credentials come from .env (see .env.example); never hardcode keys here.
 API_KEYS = {
@@ -60,10 +62,31 @@ API_KEYS = {
         # must match the vLLM server's registered name (its --model path,
         # unless --served-model-name is set)
         "model": os.environ.get("GEMMA_MODEL", "gemma-3-finetuned-merged-bf16"),
+        "max_tokens": int(os.environ.get("GEMMA_MAX_TOKENS", "1024")),
+        "timeout_seconds": float(os.environ.get("GEMMA_TIMEOUT_SECONDS", "600")),
+        "main_idea_max_tokens": int(os.environ.get("GEMMA_MAIN_IDEA_MAX_TOKENS", "1024")),
+        "main_idea_batch_size": int(os.environ.get("GEMMA_MAIN_IDEA_BATCH_SIZE", "1")),
+        # in-flight requests; vLLM batches them on the server GPU
+        "concurrency": int(os.environ.get("GEMMA_CONCURRENCY", "8")),
     },
     "gemini": {
         "api_key": os.environ.get("GEMINI_API_KEY", ""),
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+    },
+    "together": {
+        "api_key": os.environ.get("TOGETHER_API_KEY", ""),
+        "base_url": os.environ.get(
+            "TOGETHER_BASE_URL", "https://api.together.xyz/v1"
+        ),
+        "model": os.environ.get("TOGETHER_MODEL", ""),
+        "max_tokens": int(os.environ.get("TOGETHER_MAX_TOKENS", "4096")),
+        "empty_retry_max_tokens": int(
+            os.environ.get("TOGETHER_EMPTY_RETRY_MAX_TOKENS", "16384")
+        ),
+        "concurrency": int(os.environ.get("TOGETHER_CONCURRENCY", "8")),
+        "reasoning_effort": os.environ.get(
+            "TOGETHER_REASONING_EFFORT", "low"
+        ),
     },
 }
 # --------------------------------------------------------------------------- #
@@ -82,6 +105,8 @@ def _tree_config(method: str) -> dict:
            "evaluation": MODEL_CONFIG["evaluation"]}
     if method == "blossom":
         cfg["blossom"] = MODEL_CONFIG["blossom"]
+    elif method == "evaltree":
+        cfg["clustering_embedding_model"] = CLUSTERING_EMBEDDING_MODEL
     return cfg
 
 
@@ -98,15 +123,22 @@ def build_hierarchy_tree(json_file: Path = DATA_FILE, visualise: bool = VISUALIS
     tree = Tree.load(src)
     tree.config = _tree_config("blossom")
     tree.dump(out_file)
-    level_idx = 0
-    use_custom_score = False
-
+    # A persisted tree contains every completed level. Resume from the highest
+    # one instead of re-pairing level 0 and duplicating internal nodes.
+    level_idx = len(tree.levels) - 1
     while len(tree.levels[level_idx].nodes) > 1:
-        # finds third nearest neighbor, make sure this function goes before get_nearest_neighbors_blossom
-        find_third(tree, level_idx)
-
         # — Pair active nodes with blossom
-        get_nearest_neighbors_blossom(tree, level_idx, custom_threshold=0.5, llm_model_name=MODEL_CONFIG["blossom"], api_keys=API_KEYS)
+        get_nearest_neighbors_blossom(
+            tree,
+            level_idx,
+            use_custom_score=True,
+            llm_model_name=MODEL_CONFIG["blossom"],
+            api_keys=API_KEYS,
+        )
+
+        # Resolve the specificity outsider after matching so the chosen match
+        # is explicitly excluded from the candidate set.
+        find_third(tree, level_idx)
 
         # entail2 = [0]
         # while any((score < 0.3 for score in entail2)){ 
@@ -163,14 +195,22 @@ def build_hierarchy_tree(json_file: Path = DATA_FILE, visualise: bool = VISUALIS
         viewer_json = generate_dag_json_from_tree(out_file)
         launch_tree_viewer(viewer_json)
         
-def build_evaltree_tree(json_file: Path = DATA_FILE, visualise: bool = VISUALISE) -> Path:
+def build_evaltree_tree(
+    json_file: Path = DATA_FILE,
+    visualise: bool = VISUALISE,
+    k: int = 2,
+) -> Path:
     """Builds an EvalTree hierarchy from the level-0 leaves of json_file:
     annotate each leaf with a capability gerund phrase, cluster the leaves
-    with recursive 2-means, summarize each cluster bottom-up, assign third
+    with recursive k-means, summarize each cluster bottom-up, assign third
     neighbors, and judge every summary (entailment + specificity).
-    Saves to <stem>_evaltree.json so a blossom tree built from the same base
-    is never overwritten."""
-    out_file = _with_suffix(json_file, "_evaltree")
+    Saves to <stem>_evaltree.json for k=2 (the historical default), or
+    <stem>_evaltree_k<k>.json for other values, so runs never overwrite one
+    another or a Blossom tree built from the same base."""
+    if k < 2:
+        raise ValueError("EvalTree k must be at least 2")
+    suffix = "_evaltree" if k == 2 else f"_evaltree_k{k}"
+    out_file = _with_suffix(json_file, suffix)
     base = Tree.load(json_file)
     leaves = base.levels[0].nodes
     for leaf in leaves:            # links are rebuilt by the clustering step
@@ -178,14 +218,14 @@ def build_evaltree_tree(json_file: Path = DATA_FILE, visualise: bool = VISUALISE
         leaf.children = []
     tree = Tree(levels=[Level(level=0, nodes=leaves)],
                 next_id=max(n.id for n in leaves) + 1,
-                config=_tree_config("evaltree"))
+                config={**_tree_config("evaltree"), "k": k})
     tree.dump(out_file)
 
     # — Annotate leaves with capability phrases
     annotate_tree(tree, model_name=MODEL_CONFIG["summary_generation"], api_keys=API_KEYS)
 
-    # — Recursive 2-means clustering over capability embeddings
-    rkm = RecursiveKMeans(max_children=2, max_depth=50)
+    # — Recursive k-means clustering over capability embeddings
+    rkm = RecursiveKMeans(max_children=k, max_depth=50)
     embeddings = rkm.embed([n.capability or n.prompt for n in leaves])
     clustering = rkm.cluster_recursive([n.id for n in leaves], embeddings)
     build_hierarchy(tree, clustering)
@@ -277,12 +317,20 @@ if __name__ == "__main__":
         help="For run: which hierarchy method to build (default: blossom)",
     )
     parser.add_argument(
+        "--k",
+        type=int,
+        default=2,
+        help="EvalTree K-means branching factor (default: 2; ignored by Blossom)",
+    )
+    parser.add_argument(
         "json_file",
         nargs="?",
         default=None,
         help="For view-json: DAG JSON file under visualisation/ (basename or path; only basename is used)",
     )
     args = parser.parse_args()
+    if args.k < 2:
+        parser.error("--k must be at least 2")
 
     if args.mode == "run":
         run_blossom = args.method in ("blossom", "both")
@@ -291,7 +339,7 @@ if __name__ == "__main__":
             # for "both", hold the (blocking) viewer until the last build
             build_hierarchy_tree(visualise=VISUALISE and not run_evaltree)
         if run_evaltree:
-            build_evaltree_tree()
+            build_evaltree_tree(k=args.k)
     elif args.mode == "score":
         if args.json_file:
             target = Path(args.json_file)

@@ -51,7 +51,9 @@ class Node:
     alive: bool = True
 
     third: int | None = None
-    third_score: int |None = None
+    third_score: float | None = None
+    third_leaf: int | None = None
+    third_leaf_sim: float | None = None
     evaluation_specificity: str | None = None
     specificity: int | None = None
 
@@ -139,6 +141,8 @@ class Tree:
 
                         third=n.get("third"),
                         third_score = n.get("third_score"),
+                        third_leaf=n.get("third_leaf"),
+                        third_leaf_sim=n.get("third_leaf_sim"),
                         specificity=n.get("specificity"),
                         evaluation_specificity = n.get("evaluation_specificity"),
                         faithfulness1 = n.get("faithfulness1"),

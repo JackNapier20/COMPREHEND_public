@@ -1,17 +1,18 @@
-import os
-import pickle
-import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
-import time
 import networkx as nx
 from tree import Tree
-from typing import Optional
 from openai import OpenAI
 import json
+import os
 import re
 import torch
+import anthropic
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+
+from llm_utils import API_TIMEOUT_SECONDS, GEMMA_REQUEST_VERSION, anthropic_text, gemma_chat_text, together_chat_text
+from retrieval.embedding_cache import load_or_create_embeddings
+from retrieval.similarity import blend_similarities
 
 # --- refusal/template detector (only when the prompt STARTS like a refusal) ---
 _REFUSAL_START_PATTERNS = [
@@ -33,13 +34,12 @@ def _starts_with_refusal(text: str) -> bool:
             return True
     return False
 
-
-import anthropic
 # Shared OpenAI client dynamic initialization in functions
 
 # ---- Embedding device / VRAM knobs ----
 USE_CUDA = False  # set True to use GPU if available
 EMBED_BATCH_SIZE = 64  # lower this (e.g., 16/32) if you hit CUDA OOM; raise on CPU
+IDEA_WEIGHT = 0.2
 
 mainIdeaExtractPrompt = (
     """
@@ -61,13 +61,60 @@ Input JSON:\n{payload}
     """
 )
 
+def gemma_main_idea_messages(text: str) -> list[dict]:
+    """Build the actual extraction request for inference and diagnostic probes."""
+    prompt = (
+        "You will be given a text. Extract the single most important main idea "
+        "in one short sentence.\nReturn only that sentence.\n"
+        f"Text:\n{text}"
+    )
+    return [
+        {"role": "system", "content": (
+            "You are a professional editor. Read the following prompt carefully "
+            "and respond to the best of your ability."
+        )},
+        {"role": "user", "content": prompt},
+    ]
+
+
+def _parse_main_idea_batch(raw: str, expected: int) -> list[str] | None:
+    """Parse a batch response without assigning JSON formatting to nodes."""
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+
+    candidates = [text]
+    start = text.find("[")
+    end = text.rfind("]")
+    if 0 <= start < end:
+        candidates.append(text[start:end + 1])
+
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        if (
+            isinstance(parsed, list)
+            and len(parsed) == expected
+            and all(isinstance(item, str) and item.strip() for item in parsed)
+        ):
+            return [item.strip() for item in parsed]
+    return None
+
+
 def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "openai", api_keys: dict = None):
     """Call the LLM to extract main idea(s).
 
     - If `text` is a string: returns a single string.
     - If `text` is a list of strings: returns a list of strings (batched via JSON prompt).
 
-    Provider/model switching is still done by editing the `client...create(...)` call(s) below.
+    Provider and served model settings come from the supplied configuration.
     """
 
     # --- batched path ---
@@ -79,6 +126,11 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
         for start in range(0, len(text), batch_size):
             print(f"Extracting main ideas for batch {start} to {min(start + batch_size, len(text))}...")
             chunk = text[start:start + batch_size]
+            if llm_model_name == "gemma" and len(chunk) == 1:
+                out.append(_extract_main_idea_llm(
+                    chunk[0], llm_model_name=llm_model_name, api_keys=api_keys,
+                ).strip())
+                continue
             payload = json.dumps({"texts": chunk}, ensure_ascii=False)
 
             if llm_model_name == "openai":
@@ -95,9 +147,10 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                 raw = resp.choices[0].message.content.strip()
             elif llm_model_name == "claude":
                 client = anthropic.Anthropic(
-                    api_key=api_keys["claude"]
+                    api_key=api_keys["claude"], timeout=API_TIMEOUT_SECONDS, max_retries=0,
                 )
-                resp = client.messages.create(
+                raw = anthropic_text(
+                    client,
                     model="claude-sonnet-4-6",
                     max_tokens=1024,
                     system="You are a professional editor. Follow instructions exactly.",
@@ -105,21 +158,34 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                         {"role": "user", "content": mainIdeaExtractBatchPrompt.format(payload=payload)},
                     ],
                 )
-                raw = resp.content[0].text.strip()
-            elif llm_model_name == "gemma":
-                client = OpenAI(
-                    api_key=api_keys["gemma"]["api_key"],
-                    base_url=api_keys["gemma"]["base_url"]
+            elif llm_model_name == "together":
+                raw = together_chat_text(
+                    api_keys["together"],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a professional editor. Follow "
+                                "instructions exactly."
+                            ),
+                        },
+                        {
+                            "role": "user",
+                            "content": mainIdeaExtractBatchPrompt.format(
+                                payload=payload
+                            ),
+                        },
+                    ],
                 )
-                resp = client.chat.completions.create(
-                    model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                    stop=["<end_of_turn>"],
+            elif llm_model_name == "gemma":
+                raw = gemma_chat_text(
+                    api_keys["gemma"],
+                    max_tokens=int(api_keys["gemma"].get("main_idea_max_tokens", 1024)),
                     messages=[
                         {"role": "system", "content": "You are a professional editor. Follow instructions exactly."},
                         {"role": "user", "content": mainIdeaExtractBatchPrompt.format(payload=payload)},
                     ],
                 )
-                raw = resp.choices[0].message.content.strip()
             elif llm_model_name == "gemini":
                 client = OpenAI(
                     api_key=api_keys["gemini"]["api_key"],
@@ -137,23 +203,23 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
             else:
                 raise ValueError(f"Unknown llm_model_name: {llm_model_name}")
 
-            parsed = None
-            try:
-                j = json.loads(raw)
-                if isinstance(j, list) and all(isinstance(x, str) for x in j):
-                    parsed = j
-            except Exception:
-                parsed = None
-
-            # Fallback: one non-empty line per item
+            parsed = _parse_main_idea_batch(raw, len(chunk))
             if parsed is None:
-                parsed = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+                print(
+                    "Batch main-idea response was not a valid JSON array; "
+                    "falling back to individual extraction."
+                )
+                parsed = [
+                    _extract_main_idea_llm(
+                        item,
+                        batch_size=batch_size,
+                        llm_model_name=llm_model_name,
+                        api_keys=api_keys,
+                    ).strip()
+                    for item in chunk
+                ]
 
-            # Ensure length matches
-            if len(parsed) != len(chunk):
-                parsed = (parsed + [""] * len(chunk))[:len(chunk)]
-
-            out.extend([s.strip() for s in parsed])
+            out.extend(parsed)
 
         return out
 
@@ -171,9 +237,10 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
         return resp.choices[0].message.content.strip()
     elif llm_model_name == "claude":
         client = anthropic.Anthropic(
-            api_key=api_keys["claude"]
+            api_key=api_keys["claude"], timeout=API_TIMEOUT_SECONDS, max_retries=0,
         )
-        resp = client.messages.create(
+        return anthropic_text(
+            client,
             model="claude-sonnet-4-6",
             max_tokens=1024,
             system="You are a professional editor. Read the following prompt carefully and respond to the best of your ability.",
@@ -181,21 +248,29 @@ def _extract_main_idea_llm(text, batch_size: int = 8, llm_model_name: str = "ope
                 {"role": "user", "content": mainIdeaExtractPrompt.format(txt=text)},
             ],
         )
-        return resp.content[0].text.strip()
-    elif llm_model_name == "gemma":
-        client = OpenAI(
-            api_key=api_keys["gemma"]["api_key"],
-            base_url=api_keys["gemma"]["base_url"]
-        )
-        resp = client.chat.completions.create(
-            model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                    stop=["<end_of_turn>"],
+    elif llm_model_name == "together":
+        return together_chat_text(
+            api_keys["together"],
             messages=[
-                {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                {"role": "user", "content": mainIdeaExtractPrompt.format(txt=text)},
-            ]
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a professional editor. Read the following "
+                        "prompt carefully and respond to the best of your ability."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": mainIdeaExtractPrompt.format(txt=text),
+                },
+            ],
         )
-        return resp.choices[0].message.content.strip()
+    elif llm_model_name == "gemma":
+        return gemma_chat_text(
+            api_keys["gemma"],
+            max_tokens=min(256, int(api_keys["gemma"].get("main_idea_max_tokens", 1024))),
+            messages=gemma_main_idea_messages(text),
+        )
     elif llm_model_name == "gemini":
         client = OpenAI(
             api_key=api_keys["gemini"]["api_key"],
@@ -225,33 +300,86 @@ def load_model(model_name='all-mpnet-base-v2', *, use_cuda: bool = False):
         pass
     return m
 
-def generate_embeddings(model, corpus_sentences, embedding_cache_path):
-    # print("Encoding the corpus. This might take a while...")
-    # corpus_embeddings = model.encode(corpus_sentences, show_progress_bar=True, convert_to_numpy=True)
-    corpus_embeddings = model.encode(
-        corpus_sentences,
-        batch_size=EMBED_BATCH_SIZE,
-        show_progress_bar=True,
-        convert_to_numpy=True,
+def extract_main_ideas(nodes, *, llm_model_name="openai", api_keys=None,
+                       checkpoint_callback=None):
+    """Populate and return leaf main ideas, reusing values already on nodes."""
+    ideas = [None] * len(nodes)
+    missing_positions = []
+    missing_texts = []
+    for pos, node in enumerate(nodes):
+        if node.mainIdea:
+            ideas[pos] = node.mainIdea
+        else:
+            missing_positions.append(pos)
+            missing_texts.append(node.prompt or "")
+
+    batch_size = (
+        int(api_keys["gemma"].get("main_idea_batch_size", 1))
+        if llm_model_name == "gemma" else 8
     )
+    if batch_size < 1:
+        raise ValueError("Main-idea batch size must be positive")
+    workers = (
+        max(1, int(api_keys["gemma"].get("concurrency", 1)))
+        if llm_model_name == "gemma" else 1
+    )
+    if llm_model_name != "gemma":
+        workers = max(1, int(os.environ.get("MAIN_IDEA_MAX_WORKERS", "1")))
+    starts = range(0, len(missing_texts), batch_size)
 
-    denom = np.linalg.norm(corpus_embeddings, axis=1, keepdims=True)
-    denom[denom == 0] = 1.0
-    corpus_embeddings = corpus_embeddings / denom
-    
-    print("Storing embeddings on disk...")
-    os.makedirs(os.path.dirname(embedding_cache_path), exist_ok=True)
-    with open(embedding_cache_path, "wb") as fOut:
-        pickle.dump({'sentences': corpus_sentences, 'embeddings': corpus_embeddings}, fOut)  
-    print("Embeddings stored successfully")
-    return corpus_sentences, corpus_embeddings
+    def extract(start):
+        return _extract_main_idea_llm(
+            missing_texts[start:start + batch_size],
+            batch_size=batch_size,
+            llm_model_name=llm_model_name,
+            api_keys=api_keys,
+        )
 
-def load_embeddings(embedding_cache_path):
-    print("Loading precomputed embeddings...")
-    with open(embedding_cache_path, "rb") as fIn:
-        cache_data = pickle.load(fIn)
-    print("Embeddings loaded successfully")
-    return cache_data['sentences'], cache_data['embeddings']
+    def save_batch(start, extracted):
+        positions = missing_positions[start:start + batch_size]
+        if len(extracted) != len(positions):
+            raise ValueError("Main-idea response count does not match its input batch")
+        for pos, idea in zip(positions, extracted):
+            cleaned = idea.strip() or "Unknown main idea"
+            nodes[pos].mainIdea = cleaned
+            ideas[pos] = cleaned
+        if checkpoint_callback is not None:
+            checkpoint_callback()
+
+    if workers <= 1:
+        for start in starts:
+            save_batch(start, extract(start))
+    else:
+        # Workers only produce text; the main thread assigns leaf IDs and saves.
+        remaining = iter(starts)
+        failures = []
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            pending = {}
+            for _ in range(workers):
+                start = next(remaining, None)
+                if start is None:
+                    break
+                pending[executor.submit(extract, start)] = start
+            while pending:
+                completed, _ = wait(pending, return_when=FIRST_COMPLETED)
+                for future in completed:
+                    start = pending.pop(future)
+                    try:
+                        extracted = future.result()
+                    except Exception as exc:
+                        failures.append(exc)
+                    else:
+                        save_batch(start, extracted)
+                if not failures:
+                    for _ in completed:
+                        start = next(remaining, None)
+                        if start is None:
+                            break
+                        pending[executor.submit(extract, start)] = start
+        if failures:
+            raise failures[0]
+
+    return [idea or "Unknown main idea" for idea in ideas]
 
 
 def get_nearest_neighbors_blossom(
@@ -260,9 +388,9 @@ def get_nearest_neighbors_blossom(
     model_name: str = 'all-mpnet-base-v2',
     *,
     use_custom_score: bool = True,
-    custom_threshold: Optional[float] = None,
     llm_model_name: str = "openai",
     api_keys: dict = None,
+    checkpoint_path=None,
 ):
     model = load_model(model_name, use_cuda=USE_CUDA)
     level = tree.levels[level_idx]
@@ -299,36 +427,48 @@ def get_nearest_neighbors_blossom(
     print(f"Active row numbers: {active_idxs}")
     # print(f"Corpus sentences: {corpus_sentences}\n")
     
-    embedding_cache_path = f'outputs/{model_name.replace("/", "_")}_embeddings.pkl'
+    if len(active_idxs) < 2:
+        print("Not enough active nodes to match.")
+        return
 
-    # corpus_sentences, corpus_embeddings = generate_embeddings(model, corpus_sentences, embedding_cache_path)
-
-    corpus_sentences, corpus_embeddings = load_embeddings(embedding_cache_path)
+    corpus_sentences, corpus_embeddings, cache_path = load_or_create_embeddings(
+        model,
+        corpus_sentences,
+        model_name,
+        level_idx,
+        batch_size=EMBED_BATCH_SIZE,
+    )
+    print(f"Embedding cache: {cache_path}")
     
     num_sentences = len(corpus_sentences)
-    similarity_matrix = np.matmul(corpus_embeddings, corpus_embeddings.T)  # cosine similarity since normalized
+    similarity_matrix = np.matmul(corpus_embeddings, corpus_embeddings.T)
 
-    G = nx.Graph()
-
-    print("\nBuilding similarity graph:")
-    for i in range(num_sentences):
-        for j in range(i + 1, num_sentences):
-            similarity = similarity_matrix[i][j]
-            G.add_edge(i, j, weight=similarity)
-            # print(f"Edge between sentence {i} (row {active_idxs[i]}) and sentence {j} (row {active_idxs[j]}) with similarity {similarity}")
-            
-    print("\nRunning blossom algorithm")
-    matching = nx.algorithms.matching.max_weight_matching(G, maxcardinality=True)
-    # print(f"Matching pairs: {matching}")
-    
-    idx_mapping = {i: active_idxs[i] for i in range(len(active_idxs))}
-    print(f"\nID mapping: { {i: level.nodes[j].id for i, j in idx_mapping.items()} }")
-
-    # ---- leaf-only custom idea similarity (batched) ----
-    idea_embeddings = None
+    idea_similarity_matrix = None
+    combined_similarity_matrix = similarity_matrix
     if do_custom:
-        local_texts = [level.nodes[idx_mapping[i]].prompt for i in range(len(active_idxs))]
-        ideas = _extract_main_idea_llm(local_texts, batch_size=8, llm_model_name=llm_model_name, api_keys=api_keys)
+        active_nodes = [level.nodes[idx] for idx in active_idxs]
+        if llm_model_name == "gemma":
+            tree.config["gemma_generation_config"] = {
+                "request_version": GEMMA_REQUEST_VERSION,
+                "temperature": 0,
+                "ignore_eos": False,
+                **{
+                    key: api_keys["gemma"].get(key, default)
+                    for key, default in (
+                        ("max_tokens", 1024), ("timeout_seconds", 600),
+                        ("main_idea_max_tokens", 1024), ("main_idea_batch_size", 1),
+                        ("concurrency", 1),
+                    )
+                },
+            }
+        ideas = extract_main_ideas(
+            active_nodes,
+            llm_model_name=llm_model_name,
+            api_keys=api_keys,
+            checkpoint_callback=(
+                (lambda: tree.dump(checkpoint_path)) if checkpoint_path is not None else None
+            ),
+        )
         idea_embeddings = model.encode(
             ideas,
             batch_size=EMBED_BATCH_SIZE,
@@ -338,6 +478,26 @@ def get_nearest_neighbors_blossom(
         denom = np.linalg.norm(idea_embeddings, axis=1, keepdims=True)
         denom[denom == 0] = 1.0
         idea_embeddings = idea_embeddings / denom
+        idea_similarity_matrix = np.matmul(idea_embeddings, idea_embeddings.T)
+        combined_similarity_matrix = blend_similarities(
+            similarity_matrix, idea_similarity_matrix, IDEA_WEIGHT
+        )
+
+    G = nx.Graph()
+
+    print("\nBuilding similarity graph:")
+    for i in range(num_sentences):
+        for j in range(i + 1, num_sentences):
+            similarity = combined_similarity_matrix[i][j]
+            G.add_edge(i, j, weight=float(similarity))
+            # print(f"Edge between sentence {i} (row {active_idxs[i]}) and sentence {j} (row {active_idxs[j]}) with similarity {similarity}")
+            
+    print("\nRunning blossom algorithm")
+    matching = nx.algorithms.matching.max_weight_matching(G, maxcardinality=True)
+    # print(f"Matching pairs: {matching}")
+    
+    idx_mapping = {i: active_idxs[i] for i in range(len(active_idxs))}
+    print(f"\nID mapping: { {i: level.nodes[j].id for i, j in idx_mapping.items()} }")
 
     # --- Handle unmatched nodes (virtual dummy pairing) -------------------
     # Blossom on an odd count leaves exactly one local index unmatched.
@@ -387,10 +547,10 @@ def get_nearest_neighbors_blossom(
         custom_score = sim_score
 
         # Always compute main-idea similarity for leaf nodes (no threshold).
-        if do_custom and idea_embeddings is not None:
+        if do_custom and idea_similarity_matrix is not None:
             try:
-                idea_sim = float(np.dot(idea_embeddings[i], idea_embeddings[j]))
-                custom_score = float(sim_score) + idea_sim
+                idea_sim = float(idea_similarity_matrix[i][j])
+                custom_score = float(combined_similarity_matrix[i][j])
             except Exception as e:
                 # Keep graceful fallback; do not fail the pairing step
                 print(f"[custom_score] Skipping idea similarity due to error: {e}")

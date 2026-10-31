@@ -1,4 +1,6 @@
 from typing import Iterable
+from concurrent.futures import ThreadPoolExecutor
+
 import openpyxl
 from openai import OpenAI
 from tree import Level, Node, Tree, Stat
@@ -6,6 +8,8 @@ import re
 import time
 import random
 import anthropic
+import os
+from llm_utils import anthropic_text, openai_chat_text
 # from anthropic import Anthropic 
 # from anthropic import Anthropic
 # from anthropic.exceptions import APIError, RateLimitError, OverloadedError # Import necessary exceptions
@@ -13,6 +17,7 @@ import anthropic
 
 # Global variables and imports handled
 level = 1
+API_TIMEOUT_SECONDS = float(os.environ.get("LLM_API_TIMEOUT_SECONDS", "120"))
 evalPrompt = """
 Verifying Specific Common Summary of Two Similar Stories. 
 
@@ -330,28 +335,42 @@ def _judge_call(user_prompt: str, model_name: str = "openai", api_keys: dict = N
     stripped text content."""
     system = "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."
     if model_name == "openai":
-        client = OpenAI(api_key=api_keys["openai"])
-        resp = client.chat.completions.create(
+        client = OpenAI(
+            api_key=api_keys["openai"],
+            timeout=API_TIMEOUT_SECONDS,
+            max_retries=2,
+        )
+        return openai_chat_text(
+            client,
             model="gpt-5.4-mini",
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user_prompt}],
         )
-        return resp.choices[0].message.content.strip()
     elif model_name == "claude":
         client = anthropic.Anthropic(api_key=api_keys["claude"])
-        resp = client.messages.create(
+        return anthropic_text(
+            client,
             model="claude-sonnet-4-6", max_tokens=1024, system=system,
             messages=[{"role": "user", "content": user_prompt}],
         )
-        return resp.content[0].text.strip()
     elif model_name == "gemma":
-        client = OpenAI(api_key=api_keys["gemma"]["api_key"], base_url=api_keys["gemma"]["base_url"])
+        client = OpenAI(
+            api_key=api_keys["gemma"]["api_key"],
+            base_url=api_keys["gemma"]["base_url"],
+            timeout=API_TIMEOUT_SECONDS,
+            max_retries=2,
+        )
         resp = client.chat.completions.create(
             model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"), max_tokens=1024,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user_prompt}],
         )
         return resp.choices[0].message.content.strip()
     elif model_name == "gemini":
-        client = OpenAI(api_key=api_keys["gemini"]["api_key"], base_url=api_keys["gemini"]["base_url"])
+        client = OpenAI(
+            api_key=api_keys["gemini"]["api_key"],
+            base_url=api_keys["gemini"]["base_url"],
+            timeout=API_TIMEOUT_SECONDS,
+            max_retries=2,
+        )
         resp = client.chat.completions.create(
             model="gemini-2.0-flash", max_tokens=1024,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": user_prompt}],
@@ -359,6 +378,20 @@ def _judge_call(user_prompt: str, model_name: str = "openai", api_keys: dict = N
         return resp.choices[0].message.content.strip()
     else:
         raise ValueError(f"Unknown model_name: {model_name}")
+
+
+def _judge_calls(prompts, model_name, api_keys):
+    """Evaluate an ordered set of independent judge prompts concurrently."""
+    workers = max(1, int(os.environ.get("INTERNAL_EVAL_MAX_WORKERS", "1")))
+    if workers <= 1 or len(prompts) <= 1:
+        return [_judge_call(prompt, model_name, api_keys) for prompt in prompts]
+    with ThreadPoolExecutor(max_workers=min(workers, len(prompts))) as executor:
+        return list(
+            executor.map(
+                lambda prompt: _judge_call(prompt, model_name, api_keys),
+                prompts,
+            )
+        )
 
 
 def safe_extract_score(text):
@@ -417,11 +450,11 @@ def safe_extract_score(text):
 #     raise Exception("Exited retry loop unexpectedly.")
 
 
-def evaluate_common_summary(tree: Tree, level_idx: int, eval_specificity=False, eval_entail_1: bool = True, eval_entail_2: bool = True, force: bool = False, model_name: str = "openai", api_keys: dict = None):
+def evaluate_common_summary(tree: Tree, level_idx: int, eval_specificity=False, eval_entail_1: bool = True, eval_entail_2: bool = True, force: bool = False, model_name: str = "openai", api_keys: dict = None, checkpoint_path=None, eval_faith_info: bool = True):
     global level
 
     level_obj = tree.levels[level_idx]
-    
+
     # entail2s = []
 
     
@@ -434,6 +467,12 @@ def evaluate_common_summary(tree: Tree, level_idx: int, eval_specificity=False, 
         partner_node = level_obj.nodes[partner_idx] if partner_idx is not None else None
         
         if eval_specificity:
+            if (not force
+                    and node.specificity is not None
+                    and (not eval_faith_info or (
+                        node.specificity_faithfulness is not None
+                        and node.specificity_informativeness is not None))):
+                continue
             # partner_idx = node.third
             # partner_node = level_obj.nodes[partner_idx] if partner_idx is not None else None
             prompt_a = node.prompt
@@ -501,94 +540,11 @@ def evaluate_common_summary(tree: Tree, level_idx: int, eval_specificity=False, 
         
         
 
-        if model_name == "openai":
-            client = OpenAI(
-                api_key=api_keys["openai"]
-            )
-            responseA = client.chat.completions.create(
-                model="gpt-5.4-mini",
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_a}
-                ]
-            )
-            responseB = client.chat.completions.create(
-                model="gpt-5.4-mini",
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_b}
-                ]
-            )
-            evalA = responseA.choices[0].message.content.strip()
-            evalB = responseB.choices[0].message.content.strip()
-
-        elif model_name == "claude":
-            client = anthropic.Anthropic(
-                api_key=api_keys["claude"]
-            )
-            responseA = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=1024,
-                system="You are a professional editor. Read the following prompt carefully and respond to the best of your ability.",
-                messages=[{"role": "user", "content": evalPrompt2 + eval_input_a}]
-            )
-            responseB = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=1024,
-                system="You are a professional editor. Read the following prompt carefully and respond to the best of your ability.",
-                messages=[{"role": "user", "content": evalPrompt2 + eval_input_b}]
-            )
-            evalA = responseA.content[0].text.strip()
-            evalB = responseB.content[0].text.strip()
-
-        elif model_name == "gemma":
-            client = OpenAI(
-                api_key=api_keys["gemma"]["api_key"],
-                base_url=api_keys["gemma"]["base_url"]
-            )
-            responseA = client.chat.completions.create(
-                model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_a}
-                ]
-            )
-            responseB = client.chat.completions.create(
-                model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_b}
-                ]
-            )
-            evalA = responseA.choices[0].message.content.strip()
-            evalB = responseB.choices[0].message.content.strip()
-        elif model_name == "gemini":
-            client = OpenAI(
-                api_key=api_keys["gemini"]["api_key"],
-                base_url=api_keys["gemini"]["base_url"],
-            )
-            responseA = client.chat.completions.create(
-                model="gemini-2.0-flash",
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_a},
-                ],
-            )
-            responseB = client.chat.completions.create(
-                model="gemini-2.0-flash",
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": "You are a professional editor. Read the following prompt carefully and respond to the best of your ability."},
-                    {"role": "user", "content": evalPrompt2 + eval_input_b},
-                ],
-            )
-            evalA = responseA.choices[0].message.content.strip()
-            evalB = responseB.choices[0].message.content.strip()
-        else:
-            raise ValueError(f"Unknown model_name: {model_name}")
+        evalA, evalB = _judge_calls(
+            [evalPrompt2 + eval_input_a, evalPrompt2 + eval_input_b],
+            model_name,
+            api_keys,
+        )
         # evalA = responseA.content[0].text.strip() # for claude
         # evalB = responseB.content[0].text.strip()
         # scoreA = float(re.findall(r"Score: (\d+(?:\.\d+)?)", evalA)[0])
@@ -623,6 +579,11 @@ def evaluate_common_summary(tree: Tree, level_idx: int, eval_specificity=False, 
                     if eval_entail_2:
                         partner_node.entail_2 = entail_2
                 partner_node.evalScore = scoreB
+
+        if not eval_faith_info:
+            if checkpoint_path and (idx + 1) % 8 == 0:
+                tree.dump(checkpoint_path)
+            continue
 
         # ============================================================== #
         # ADDITIVE: faithfulness + informativeness (two-direction split).
@@ -663,10 +624,16 @@ Output your score and a brief justification in the following format:
 Score: [SCORE]
 Reason: [one or two sentences explaining which details drove the score]
 """
-        _fA = _judge_call(_faith_prompt + _fin_a, model_name, api_keys)
-        _fB = _judge_call(_faith_prompt + _fin_b, model_name, api_keys)
-        _iA = _judge_call(_info_prompt + _fin_a, model_name, api_keys)
-        _iB = _judge_call(_info_prompt + _fin_b, model_name, api_keys)
+        _fA, _fB, _iA, _iB = _judge_calls(
+            [
+                _faith_prompt + _fin_a,
+                _faith_prompt + _fin_b,
+                _info_prompt + _fin_a,
+                _info_prompt + _fin_b,
+            ],
+            model_name,
+            api_keys,
+        )
         _fa, _fb = safe_extract_score(_fA), safe_extract_score(_fB)
         _ia, _ib = safe_extract_score(_iA), safe_extract_score(_iB)
         # 1 = average, 2 = minimum (mirrors entail_1 / entail_2)
@@ -694,6 +661,12 @@ Reason: [one or two sentences explaining which details drove the score]
                 partner_node.informativeness2 = _info2
                 partner_node.evaluation_faithfulness = _faith_eval
                 partner_node.evaluation_informativeness = _info_eval
+
+        if checkpoint_path and (idx + 1) % 8 == 0:
+            tree.dump(checkpoint_path)
+
+    if checkpoint_path:
+        tree.dump(checkpoint_path)
 
 
     # tree.dump("10NNofASpecificity.json")
@@ -905,7 +878,9 @@ def reassign(tree, level_idx, threshold, use_specificity_for_unmatched=False, mo
         """
                     if model_name == "openai":
                         client = OpenAI(
-                            api_key=api_keys["openai"]
+                            api_key=api_keys["openai"],
+                            timeout=API_TIMEOUT_SECONDS,
+                            max_retries=2,
                         )
                         response = client.chat.completions.create(
                             model="gpt-5.4-mini",
@@ -931,7 +906,9 @@ def reassign(tree, level_idx, threshold, use_specificity_for_unmatched=False, mo
                     elif model_name == "gemma":
                         client = OpenAI(
                             api_key=api_keys["gemma"]["api_key"],
-                            base_url=api_keys["gemma"]["base_url"]
+                            base_url=api_keys["gemma"]["base_url"],
+                            timeout=API_TIMEOUT_SECONDS,
+                            max_retries=2,
                         )
                         response = client.chat.completions.create(
                             model=api_keys["gemma"].get("model", "gemma-3-finetuned-merged-bf16"),
@@ -946,6 +923,8 @@ def reassign(tree, level_idx, threshold, use_specificity_for_unmatched=False, mo
                         client = OpenAI(
                             api_key=api_keys["gemini"]["api_key"],
                             base_url=api_keys["gemini"]["base_url"],
+                            timeout=API_TIMEOUT_SECONDS,
+                            max_retries=2,
                         )
                         response = client.chat.completions.create(
                             model="gemini-2.0-flash",
@@ -1028,4 +1007,3 @@ def reassign(tree, level_idx, threshold, use_specificity_for_unmatched=False, mo
     # take pause here - too many questions:
     # what happens if node has more than one parents? Does it need to test for specificity more than once? do I need to see if third should be in either parents?
     # children can
-    

@@ -1,26 +1,29 @@
-"""Recursive 2-means clustering over leaf embeddings, and conversion of the
+"""Recursive k-means clustering over leaf embeddings, and conversion of the
 nested clustering into the levels-based Tree structure."""
 
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
 
+from evaltree.branching import split_count
 from tree import Level, Node, Tree
+
+
+CLUSTERING_EMBEDDING_MODEL = 'all-mpnet-base-v2'
 
 
 class RecursiveKMeans:
     def __init__(self, max_children=2, min_samples=1, max_depth=50):
+        split_count(2, max_children)
         self.max_children = max_children
         self.min_samples = min_samples
         self.max_depth = max_depth
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer(CLUSTERING_EMBEDDING_MODEL)
 
     def embed(self, texts):
         return self.model.encode(texts)
 
     def find_optimal_k(self, embeddings):
-        if len(embeddings) <= 1:
-            return 1
-        return 2
+        return split_count(len(embeddings), self.max_children)
 
     def cluster_recursive(self, node_ids, embeddings, depth=0):
         """Returns a nested dict {"ids": [...], "children": [...]}."""

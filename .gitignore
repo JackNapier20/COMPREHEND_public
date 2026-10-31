@@ -4,6 +4,9 @@
 # internal docs — only README.md ships
 *.md
 !README.md
+!ablations/README.md
+!agentic/README.md
+!experiments/README.md
 docs/
 
 # Claude Code files
@@ -16,12 +19,21 @@ __pycache__/
 *.pyc
 myvenv/
 myenv/
+.venv/
 
 # OS noise
 .DS_Store
 
 # large caches / logs
 outputs/
+ablation_outputs/
+agentic_outputs/
+k_sensitivity_outputs/
+specificity_diagnostics_outputs/
+hpc_gemma_outputs/
+finetune_v5_outputs/
+summary_model_outputs_high_reasoning_partial/
+comparison_256_outputs/*_compromised_*/
 slurm-*.out
 slurm-*-error.out
 slurm_output_j/

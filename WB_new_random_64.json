@@ -1,0 +1,538 @@
+{
+  "config": {
+    "dataset": "allenai/WildBench v2 test",
+    "source_file": "dataset_WB_with_scores.csv",
+    "sample_seed": 42,
+    "sample_size": 64,
+    "summary_prompt_source": "common_summary_generation/summarize.py",
+    "summary_prompt_variable": "prompt14",
+    "demonstration_text_count": 45,
+    "rejected_before_completion": [],
+    "selected_source_rows": [
+      964,
+      18,
+      184,
+      392,
+      149,
+      843,
+      53,
+      950,
+      355,
+      904,
+      933,
+      450,
+      744,
+      740,
+      985,
+      395,
+      454,
+      483,
+      298,
+      202,
+      523,
+      622,
+      683,
+      231,
+      691,
+      509,
+      946,
+      213,
+      247,
+      866,
+      487,
+      899,
+      241,
+      256,
+      85,
+      49,
+      428,
+      857,
+      582,
+      679,
+      635,
+      934,
+      185,
+      499,
+      188,
+      515,
+      847,
+      33,
+      229,
+      770,
+      876,
+      581,
+      192,
+      221,
+      150,
+      374,
+      673,
+      924,
+      1009,
+      814,
+      625,
+      752,
+      198,
+      361
+    ],
+    "selected_wildbench_ids": [
+      "0693c7eb853b46e4",
+      "ae41edaeca0647ef",
+      "fe607feae87c4189",
+      "8dcbfea7ee5b438e",
+      "e51fcc39c6274f91",
+      "eb57ead639294c64",
+      "380dc0c9f22e4413",
+      "59c51ac835944f6d",
+      "ad9a06c423c74024",
+      "631f32c0b6c8475e",
+      "465afecda6464734",
+      "33537deefd6a4edd",
+      "d81c2da73b5d441f",
+      "cc89d4690cd44285",
+      "1cc96734723f4953",
+      "102ff8ac971c4aa1",
+      "a6b116941d484e17",
+      "d80b1388cac143f6",
+      "94c8745dc96e4029",
+      "d350008a48234007",
+      "7e071f9bd9e24dca",
+      "5692f952bafa4352",
+      "be0566927d494409",
+      "ef361e4bbb4c45c9",
+      "6b1bde8a21dd4e36",
+      "a604bdfd042b4e95",
+      "e98af4c02b354615",
+      "a5dcb02cb68841cd",
+      "019cd74ecae149e8",
+      "35a54553a5c44c2b",
+      "6d8c01aca71346d8",
+      "389e1580985e4c22",
+      "402f65b6ca08484f",
+      "78359a8a24fc4557",
+      "57f29131e4de4f3c",
+      "45068aa69aa3457e",
+      "b959fe7d986d42ef",
+      "d339bee5296a4844",
+      "7bd3bb84ca354a10",
+      "aa9ed250235d4abb",
+      "33192908b7fe46bd",
+      "faac0c1660634b9a",
+      "892396110b444eea",
+      "35ef64608a4f4116",
+      "ace101899d4f4165",
+      "38d0dc610ab54c92",
+      "00c7916a072b4947",
+      "39413bf665b042fc",
+      "60ce6a322ce941f6",
+      "c3c0870020f34e1b",
+      "496b45d4e63c4eb8",
+      "6475a4f517a246d6",
+      "e626a329b62b408c",
+      "c7066cc2e63048e9",
+      "c6c90fc47ba94277",
+      "59d97def0d044a98",
+      "4f1e1f1cfaec4ad8",
+      "5051c62ec17741d2",
+      "10e4408e92944017",
+      "007d897c50e447de",
+      "f2ff8aa6a2af410b",
+      "ca96dbdbfbb54ba4",
+      "50ad0d2f726e4d5d",
+      "877c2c3b7b614428"
+    ],
+    "selected_session_ids": [
+      "0693c7eb853b46e4",
+      "ae41edaeca0647ef",
+      "fe607feae87c4189",
+      "8dcbfea7ee5b438e",
+      "e51fcc39c6274f91",
+      "eb57ead639294c64",
+      "380dc0c9f22e4413",
+      "59c51ac835944f6d",
+      "ad9a06c423c74024",
+      "631f32c0b6c8475e",
+      "465afecda6464734",
+      "33537deefd6a4edd",
+      "d81c2da73b5d441f",
+      "cc89d4690cd44285",
+      "1cc96734723f4953",
+      "102ff8ac971c4aa1",
+      "a6b116941d484e17",
+      "d80b1388cac143f6",
+      "94c8745dc96e4029",
+      "d350008a48234007",
+      "7e071f9bd9e24dca",
+      "5692f952bafa4352",
+      "be0566927d494409",
+      "ef361e4bbb4c45c9",
+      "6b1bde8a21dd4e36",
+      "a604bdfd042b4e95",
+      "e98af4c02b354615",
+      "a5dcb02cb68841cd",
+      "019cd74ecae149e8",
+      "35a54553a5c44c2b",
+      "6d8c01aca71346d8",
+      "389e1580985e4c22",
+      "402f65b6ca08484f",
+      "78359a8a24fc4557",
+      "57f29131e4de4f3c",
+      "45068aa69aa3457e",
+      "b959fe7d986d42ef",
+      "d339bee5296a4844",
+      "7bd3bb84ca354a10",
+      "aa9ed250235d4abb",
+      "33192908b7fe46bd",
+      "faac0c1660634b9a",
+      "892396110b444eea",
+      "35ef64608a4f4116",
+      "ace101899d4f4165",
+      "38d0dc610ab54c92",
+      "00c7916a072b4947",
+      "39413bf665b042fc",
+      "60ce6a322ce941f6",
+      "c3c0870020f34e1b",
+      "496b45d4e63c4eb8",
+      "6475a4f517a246d6",
+      "e626a329b62b408c",
+      "c7066cc2e63048e9",
+      "c6c90fc47ba94277",
+      "59d97def0d044a98",
+      "4f1e1f1cfaec4ad8",
+      "5051c62ec17741d2",
+      "10e4408e92944017",
+      "007d897c50e447de",
+      "f2ff8aa6a2af410b",
+      "ca96dbdbfbb54ba4",
+      "50ad0d2f726e4d5d",
+      "877c2c3b7b614428"
+    ]
+  },
+  "levels": [
+    {
+      "level": 0,
+      "nodes": [
+        {
+          "id": 0,
+          "prompt": "7 . C onsider a grammar G is given as follows\nS → AB | aaB\nA → a | Aa\nB → b\nDetermine wh ether t he grammar G is ambiguous or not. If G is ambiguous,\nconstruct an unambi guous grammar equi valent to G.",
+          "alive": true
+        },
+        {
+          "id": 1,
+          "prompt": "If you want the best gpu possible should you be looking towards consumer or datacentre gpus?No im quite litreally seeking the most powerful, both for games, ai, and other shitLets say I gave you 25k to just build the most powerful computer for mainly ai, meaning the requirements are a powerful gpu, proportional ram obviously, and 10tb ssd.How much do you think this might cost?",
+          "alive": true
+        },
+        {
+          "id": 2,
+          "prompt": "formulate a high-end broiler feed to gain a weaght of 3kg in 5 weeksremove choline chloride , enzymes, bone meal. fish meal, sunflower meal, soya bean meal and include sesame cake and blood meal make this for 100kg and make starter grower and finisher feed",
+          "alive": true
+        },
+        {
+          "id": 3,
+          "prompt": "we have a system in the form of cube with size of (a,b,c) , it's surrounded by the air with the temperature of T_inf and h . Derive the lump formulation of this system with internal heat generation at steady state condition.used the method of book Arpahci to formulate this system in lumped.",
+          "alive": true
+        },
+        {
+          "id": 4,
+          "prompt": "You're applying for a job as an intern for a school. You have all the skills it takes to run a school and are looking forward to learning better ways of running and delivery of knowledge and skills to learners. This job requires you to assist the proprietress and learn from her, you will be required to teach in classrooms as assistant to classroom teachers. Write  you CV and include all the skills needed to convince the highering manager that you are fit for this job. \nHere are information about you: \nJohnson prudence Bose \nNo 18 Sam Onwudinjo street, igboelerin, Ojo, Lagos \n09060652921\nContactpeejohnson@gmail.com\nFemale\n14th September 1975\nState of origin: Cross river \nEducational Background \nAdeniran Ogunsanya College of Education (NCE), English French Education 2013 – 2016\nAkoka High school Akoka – 1989 - 1994\nEmployment History \nGod’s Glory Nursery and Primary Schools – 2010- 2012, Classroom teacher \nFADEP Schools – Class Teacher/ School Administrator.in this prompt, you're going to create a realistic plan to migrate into a new job role: \nYou are currently a digital tutor and you are meant to create 6 to 8 lesson plans weekly and shoot about the same number of lesson plans \nYou're also to create practice questions for each chapter of the lesson taught. \nyou currently work in another industry as a voice over talent but would be leaving the company soon. \nthe role you are moving to requires you to edit and check for the accuracy of educational content in lessons and scripts. you're required to edit 10 scripts per day. \nYou are asked to create a concrete plan of how you can do script editing, as well as the myriad of other things you do. Part of the concern is that you have a lot you are doing personally and will not be focused fully\nAlso how will it affect the function of Math tutor that you are now. What's the plan if you end up dropping that? We need to see a clear, organized and easy transition, with no messiness or letting any ball drop.",
+          "alive": true
+        },
+        {
+          "id": 5,
+          "prompt": "A block of mass m slides along a frictionless horizontal table at speed u. It strikes a spring of force constant k fixed to a wall. The spring gets compressed by a maximum length x. The speed of the block immediately after leaving the spring is v. Show that momentum of the system is conserved if mv = √(mu2 + 2kx2).",
+          "alive": true
+        },
+        {
+          "id": 6,
+          "prompt": "I am trying to improve the quality of images generated in my text prompt for use by an image generation AI model called Stable Diffusion, this is just the \"quality\" tags, and here is what I am currently using:\n\nanalog style photo, vhs artifacts, movie still, amateur porn, RAW color photo, professionally color graded, ultrarealistic, photograph, hyperrealism, photorealistic, 8k wallpaper, natural lighting, volumetric lighting, subsurface scattering, global illumination, extremely ornate clothes, finely detailed, perfect anatomy, extremely detailed texture, ultra detailed skin, perfect sparkling eyes, skin pores, vellus hair, fabric stitching, wood grain, stone texture, 100mm, fabric texture, incredibly absurdres, highres, ultra-detailed, award winning, high detail, best quality, bokeh, depth of field, blurry background, detailed background, film grain, HDR\n\nYour goal is to analyse what I already have, see if anything in it might just change the art style of the image, without necessarily improving the quality(the prompts I will be adding this to have their own artist styles), please put those aside in a \"removed\" list, then, consider other words that might be usable to increase the quality, these must be specific concepts, and shouldn't just be instructions telling the AI to generate higher quality(that is covered in tags like \"high detail\" and \"highres\" anyway), as Stable Diffusion does not understand choice, decision making or instruction based language.\n\nLet's do this in a step by step way to ensure the best possible quality tags are included without altering the style too much or overusing a specific concept.Are there any extra tags you might be able to add to the list to focus on enhancing the quality of the generated image, without affecting the art style? Provide the final list in a coma separated format like the list I originally gave you.\nLet's do it in a step by step way to ensure the best quality enhancing list of tags as possible.Please revisit my original list, as there are some things I didn't see you mention, like vellus hair or skin pores for example. Make sure you look at all the ones you missed and see what should be kept or thrown away, then provide the updated list in a coma separated format.",
+          "alive": true
+        },
+        {
+          "id": 7,
+          "prompt": "We suspect that human IFITM proteins may regulate the secretory pathway. Mechanistically, why might this make sense given what is known about these proteins, and what experiments would you design to test this idea?",
+          "alive": true
+        },
+        {
+          "id": 8,
+          "prompt": "logic:\n\n1. ask the user for the input directory\n\n2. ask the user for the output directory\n\nset those\n\n3. ask the user for the youtube link\n4. download the youtube video into a new folder, which is the name of the video in side the input directory\n\n5. get the transcript of the youtube video and display \"get ready for prompt\" after which you will print this to the screen using the transcript you got\n\n\"Hello AI I would like you to help me find out which 59 second clip from this youtube transcript would work best, you must judge out of this entire transcript where 59 seoncds starts and where it ends, this marks one clip. so every time this happens you know this is part one, then part tow then part three etc. You must look at these clips and tell the user with quoted examples which one is the best and which one is best for youtube. you must also answer the number of the chronilogical clip Ex: (script) answer yes, clip 4 is the best (quote) also list the part number. \" {transcript goes here}\n\nonce that is done \n\n\ntake the downloaded .mp4 file in the folder, with the downloaded video and using ffmpeg NOT MOVIEPy crop the video into a 9:16 format, output that file into a new folder called (whatever the video title was) + cropped\"\n\n\nthen access the cropped folder, take the cropped video and segment it into 59 second chuncks as long as you can\n\nOut put that into a new folder called \"video title + final\"\n\n\n\n\nHere si what the user should see: \n\n\n\"ask for inptu directory\"\n\n\"ask for output directory\"\n\nask for yt url\n\nprovide the prompt with the transcript\n\ninside the input folder is where the youtube video will be downloaded as an .mp4\n\nthen afte rprocessing a new folder in the output folder called \"(whatever the video title is + cropped\"\n\ninside there is the .mp4 processed and cropped into a 9:16 format\n\n\nthen \n\n\nin the output folder should be a new folder called \"final of (video name)\"\n\nthis contains the cropped video with 59 second segments.\n\nif the video was 6 minutes long, 6 segments.\n\nMAKE THIS INTO A WORKING PYTHON SCRIPT. to get the transcirpt use # Get the transcript of the YouTube video.\nvideo_id = get_video_id(link)\ntranscript = get_transcript(video_id)\n\n\nTo crop video use ffmpeg",
+          "alive": true
+        },
+        {
+          "id": 9,
+          "prompt": "In movies and games, characters often are shown easily snap a person's neck. Sometimes they use their hands/arms and sometimes their feet/legs. Both are not very realistic. Staying in universe, are both methods similarly plausible? Explain your reasoning.",
+          "alive": true
+        },
+        {
+          "id": 10,
+          "prompt": "Hey, if you are not too busy can you do me a favour and check how electricity, trash, corpses and human body parts are classified in Georgian (country)country law (are classified as goods, especially regarding electricity) ?\n",
+          "alive": true
+        },
+        {
+          "id": 11,
+          "prompt": "please provide a non broken link of the section of Olympian Odes on perseus digital library where it is mentioned how laurels were given to olympic athletes. please specify the lines where olympic laurels are inferredplease specify the line in nemean odes where olympic laurels are mentioned. also for pythian odes",
+          "alive": true
+        },
+        {
+          "id": 12,
+          "prompt": "Write a tutorial to implement a toy version of RDBMS ourself. Begin with a section on the query parser, which take as input an already parsed AST (Abstract Syntax Tree) of a SQL query, and convert it to relational algebra expression (again in AST). Use python. You should guide the reader to build this component iteratively, starting from a simple version that can only parse a simple SELECT statement on a single table. Then expand to allow join statement or multiple table.",
+          "alive": true
+        },
+        {
+          "id": 13,
+          "prompt": "convert this C++ code to Delphi:\n\nForMsgHdr* CSockIO::makeRequestMsg(FOREIGN_FUNCTIONS func, int dataLength, void *data)\n{\n\tCRemTstApp *app = (CRemTstApp *) AfxGetApp();\n\tint msgLen = sizeof(ForMsgHdr) + dataLength;\n\n\tForMsgHdr* pHdr = (ForMsgHdr *) new char[msgLen];\n\tpHdr->Function = func;\n\tpHdr->DataLength = dataLength;\n\tpHdr->Status = -1;\n\tpHdr->UserData = app->GetNewSeqNo();\n\n\tif ( (data != nullptr) && (dataLength > 0) )\n\t\tmemcpy(&pHdr[1], data, dataLength);\n\n\treturn pHdr;\n}",
+          "alive": true
+        },
+        {
+          "id": 14,
+          "prompt": "Write 3 songs about how me and my girlfriend can't live without each other  can't live without seeing each other can't end the relationship despite many fights we run back to each other",
+          "alive": true
+        },
+        {
+          "id": 15,
+          "prompt": "As a massive storm tears through the world of Minecraft, a strange dragon unlike any other descends. Once the storm dissipates, the elder dragon “Amatsumagatsuchi” reveals his true self. He stares down at a large cavern, where a strange sight catches his eye - five different girls, unlike any Amatsumagatsuchi has seen. He descends upon the girls, and sees that each girl’s clothes resemble a different type of monster that inhabits the Minecraft world - the Skeleton, the Creeper, the Cave Spider, the Enderman, and the Blaze. Amatsumagatsuchi just looks at them, and notices that the girl whose clothing resembles the Skeleton was in pain - and her stomach was swollen. The other girls - introducing themselves as Cupa, Vanessa, Andr, and Blazette - later introduce their friend Ayumi. Amatsumagatsuchi looks into Ayumi’s eyes - and, despite the intense pain, Ayumi looks back at Amatsumagatsuchi. As the Monster Hunter world was destroyed by Xyza - who had seemingly crossed over from the Gigabash world to the Monster Hunter world - Amatsumagatsuchi had to find a new place to live. However, his mystical energy somehow found its way to Ayumi - even though the two didn’t meet back then. Amatsumagatsuchi then gently puts his tail on Ayumi’s forehead, and received several flashbacks - such as Ayumi finding her weapon of choice (which was a bow and quiver full of arrows), and Ayumi having unexplained sickness as her stomach emitted winds that Amatsumagatsuchi was also accompanied by during his descent, and one flashback even showed Ayumi’s stomach rapidly growing. The final flashback that Amatsumagatsuchi received showed Ayumi getting a scan of her stomach - and the scan showed what looks like a hybrid of human and Amatsumagatsuchi. None of the flashbacks made sense to Amatsumagatsuchi - what was going on? And why was Ayumi in pain? Could the flashbacks mean that Ayumi is pregnant with Amatsumagatsuchi's baby?\n\n\n(There would be dialogue between each character)",
+          "alive": true
+        },
+        {
+          "id": 16,
+          "prompt": "=SUMIFS(B:B,A:A,\">=\"&DATE(2022, 6, 1),A:A,\"<\"&DATE(2022, 7, 1),C:C,I3)\n\nIn the formula above, how can I use the cell values below to create the formula\n\nS3 = 2022, 6, 1\nT3 = 2022, 7, 1I am getting an error - you have used too few arguments for this functionNo errors in the formula but the result = 0 is incorrect. The original formula result = 17Still getting the wrong results. Values in S3and T3 are derived from formulas",
+          "alive": true
+        },
+        {
+          "id": 17,
+          "prompt": "Hi, lets create a bash script. It should find the fresh transaction from pacman.log (the last line that contains \"transaction started\") and starting from that line and until the end of the file collect all the upgraded or installed packages and write them (with previous and current versions) into a file called UpdatedPkgList. The lines for upgraded packages usually contain something like this: \"upgraded package_name (2.39.1-1 -> 2.39.2-1)\". And similar for installed packages: \"installed package_name (0.40.0-3)\".  Same for removed ones. Then, for each package in the file, it should search files in the two recent folders from PacTreeHistory directory which contains folders named with dates in this format: YYYY-MM-DD_H-MM. Each of the folders hold files with dependency trees for each of the system packages. The files named after corresponding packages. The script should look for files which names are in a separate predefined list, let's call it MonitoredAppList. So, if an updated/installed/removed package is in a file within those two folders, the script should write its name, versions and the corresponding filename from the folders in a separate file, let's call it UpdatedDepsOfMonitoredApps. So, basically, we need to know, what dependencies were updated for each of the monitored apps. Feel free to suggest more rational way of doing this if there's any.",
+          "alive": true
+        },
+        {
+          "id": 18,
+          "prompt": "is the english translation ok?: रासारम्भे यदा सन्मुरज मुरलिका-झल्लरी कम्बु- भेरी- बादा-तो- वीणा पटह-घनघनोज्जृम्भिगम्भीरनादाः । मन्ये श्रीशेन साकं सुखदरसभुजामद्भुतं गोपिकानां\nभाग्यं दृष्ट्वा व्यधा सज्जडेमपि किमलं स्तोत्रमेतन्मिषेण ॥ १५ ॥ पुष्पवृष्टय इति :\nआलोक्य भूरिसुरतोत्सवभावमेनं कश्चित् प्रजारहिततां न\nइत्यात्मभावितधियो विबुधास्तदा ताः\nचदत्वमूषाम् ।\nसन्तानशोभिततनूः सुमतो व्यधुः किम् ॥ १६ ॥\nराका निशा निखिलगोपसुताश्च राक\nराके\nशरञ्जितकरा\nताः पुष्पवृष्टिवशतः खलु पुष्पवत्यो-\nवनभूमयश्च ।\nऽथूवन् क्षमं तदतिचित्रमिदं तु शुद्धाः ॥ १७ ॥\nसुमान्यमुश्च स्त्रिदशा स्तदानीं\nविलोक्य रासोत्सवमद्भुतश्रियम् ।\nन केवलं किन्त्ववधानशून्या\nनिजानि भूयः सुमनांस्यपि प्रभौ ॥ १८ ॥\nसुरता सुलता च पुष्पवत्यभवत्तादृशि सौरतोत्सवे । नहि चित्रमदोऽद्भुतं त्विदं सुरंजा वृक्षचयश्च किन्नराः ॥ १९ ॥ कल्पसन्तानवर्षाणि यत्राऽगुरणुरूपताम् ।\nयुकं तत्रोत्सवे कल्पकोटिस्वटिसमाऽभवत् ॥ २० ॥\nजगुर्गन्धवति :\nसुरतोत्सवसंत प्रवृत्तिं भृशमैशीमवलोक्य सा सुखस्था । सुरताऽन जगी क्षमं तदेतद्यदिह स्तोत्यखिलो निजेष्टदं हि ॥ २१ ॥\n१ वाद्यवृन्दम् । २. सन्ततिः प्रकृष्टनारा । ३. देवतरुपुष्पाणि प्रपत्यानि च । ४. नूतनऋतुमत्यः । ५. पुष्पविशिष्टा रजस्वलाश्च । ६. शोभनं रजो य सुरषु जातास्य । ----- At the beginning of the Rāsa-līlā, when the pleasing sound of the flute, small cymbals, conch, drum, pipe, lute, and kettledrum resonated deeply, I think that, seeing that astonishing enjoyment of the Gopis along with Śrī Kṛṣṇa, even a dullard would have composed this beautiful hymn.\nSeeing this wonderful festival of love-making, how could the demigods, who were thinking of themselves as such, have borne childlessness? Therefore, in order to dispel that thought, those blessed ones whose bodies were beautiful with progeny lamented, “Alas, how unfortunate we are!”\nThen the night, Rāka (the personification of the night), the daughters of all the cowherds, the Rāka trees, and the forest lands became covered with flowers. Indeed, this was possible because of the incessant flower shower, and it is certainly amazing that those flowers were so pure.\nSeeing the wonderful beauty of the Rāsa dance, the demigods also threw flowers down. Moreover, they became inattentive, and again and again threw their own flowers onto the Lord.\nIn such a festival of love-making as this, it is not surprising that the creepers, flowers, trees, and Kinnaras became full of flowers.\nThere, in that festival, a single moment was equal to millions of kalpas, because that festival was accompanied by showers of kalpa-like years.\nSeeing the great beginning of the love-making festival, the goddess of the wind became very eager and said, “I have obtained the desired result, because this is capable of being sung by all and gives the desired result to the performer.”",
+          "alive": true
+        },
+        {
+          "id": 19,
+          "prompt": "can you prove that the unique solution in integers of $5^x+19^y=z^2$ is $x=3,y=1,z=12$can you prove that the unique solution in integers of $ 5^x+19^y=z^2$",
+          "alive": true
+        },
+        {
+          "id": 20,
+          "prompt": "A Brief History\n\nStretching back over 3,400 years, Athens is one of the oldest cities in the world and is often considered the birthplace of Western civilization. Emblematic of Ancient Greece, the city-state was the center of arts, philosophy, and the sciences. Home to some of the Western world’s most influential thinkers, such as Socrates, Plato, and Aristotle, the city’s contribution to human thought continues to reverberate globally.\n\nOriginally a cluster of small villages, Athens evolved into a powerful city under the rule of King Theseus. As democracy flourished, Athens went on to create impressive works of architecture and art that showcased their incredible advancements in fields like mathematics, astronomy, and medicine.\n\nSurviving various invasions and suppressions, Athens has been redrawn and recast multiple times under new rulers. However, it was in the modern era that the city experienced a true renaissance, evolving into a cosmopolitan center while simultaneously working to retain and preserve its rich cultural and historical legacy.\nExpand more on the above content with more detailed and comprehensive history using Human like style, non repetitive phrases and avoiding randomness.",
+          "alive": true
+        },
+        {
+          "id": 21,
+          "prompt": "Extract the cultural ideas from the paragraph, summarize the topic, and explain the impact and significance of the records of Cheng Tang in oracle bone inscriptions on the religious beliefs of Shang Dynasty. Write an academic paper and provide 10 references:\nIn oracle bone inscriptions, the records of Cheng Tang’s rituals are numerous and complex. Three typical examples are the “Feast” ceremony where food is offered to Cheng Tang, the “Report” ceremony where urgent matters are reported to him, and the “Reception” ceremony where he is welcomed to Earth to help maintain political stability. These rituals reflect the consistent and continuous worship of Cheng Tang by the people of the Shang Dynasty. This paper will explore the impact and significance of these records on religious beliefs during the Shang Dynasty.",
+          "alive": true
+        },
+        {
+          "id": 22,
+          "prompt": "thing24 truth38 fact53 way63 reason72 idea85 time99 love105 bible113 person118 day177 life196 place210 work290 religion336 man338 point363 old417 nature458 big489 fun542 lie611 small638 culture643 human717 woman743 beautiful779 study804 object811 young900 case920 job931 item945 outside1059 brain1090 food1199 eat1235 house1273 leader1284 carry1298 tiny1354\n\nThose words constitute an incomplete list of words of a guessing game. The words are sorted by context. Each word has its position in this list attached to it. The goal of this game is to guess the word at the first position. Make 20 guesses what word we are looking for.",
+          "alive": true
+        },
+        {
+          "id": 23,
+          "prompt": "Synthesize this into a cohesive paragraph: Type 2 diabetes mellites (T2DM) is a health burden with a rise in epidemic prevalence worldwide1. T2D is characterized by increased blood glucose levels (hyperglycemia)2. Metformin is the most-prescribed medication to treat patients with T2DM due to its glucose-lowering effects3. Metformin propagates insulin sensitivity by mainly reducing hepatic glucose production (through an activation of the hepatic AMP-activated protein kinase protein)4. The most common side effect of metformin is gastrointestinal discomfort, including diarrhea, nausea, flatulence and bloating5. There is growing evidence in animal and human studies suggesting that the gut microbiome is another target involved in the anti-diabetic effects of metformin6,7,8,9. Recent investigations documented the therapeutic benefit of orally-administrated metformin compared to intravenously-administrated metformin in T2D patients, suggesting the beneficial contribution of the gut microbiota10. Metformin alters the gut microbiome by enhancing Escherichia sp, Akkermansia muciniphila and Subdoligranuum variable; reducing Intestinibacter bartletti and increasing the levels of short-chain fatty acids such as butyrate and propionate7,8. This could indicate the anti-obesity property of metformin by modulating the gut microbiome and its metabolites. However, the precise mechanisms are unclear.\n\nUnderstanding the role of bacterial-derived gut metabolites can provide a platform to elucidate interactions between microbe-microbe, microbe-diet and drugs. The gut microbiota is an attractive target for therapeutic intervention and using nutrition may help to promote drug efficiency and reduce gastrointestinal side effects11. To elucidate these interactions individual and systems-level analysis is needed12,13,14. Hence, systems biology approaches could be applied to reveal these associations between the abundances of different microbes and the molecular mechanisms underlying metformin treatment on a metabolic level15. Genome-scale metabolic models (GEMS) have been used to gain a detailed understanding of microbial metabolic changes in various environments. Previous studies used GEMs to understand the metabolic interactions between microbes and host- microbes16,17,18.\n\nWu et al. 2017 collected fecal samples from treatment naïve individuals that received 1,700 mg/d metformin treatment (22 patients) for 4 months and generated shotgun metagenomics data to determine the species abundances7. In the present study we re-analyzed this metagenomics data with an updated gut microbial gene catalog and metagenome species profile19. We carried out further analysis by investigating carbohydrate-active enzymes of the significantly altered species. This analysis showed that species that are decreased after 4 months of metformin treatment have an increased number of annotated mucins and host glycan degradation in comparison to the significantly increased species. In addition, we performed constraint-based analysis using GEMS integrating different diets to predict the phenotype of the drug metformin on the human gut microbiota. These diet-microbiota interactions can help us understand how to increase drug efficiency or mimic drug effects in the gut microbiome of patients with a dysbiosis to an improved phenotype.",
+          "alive": true
+        },
+        {
+          "id": 24,
+          "prompt": "Build an Android app that allows users to submit a photo or upload a photo with a field for price, a field for a name of the photo and a field for an optional description. The app must also contain a search bar at the top which searches through the submitted photos. Each photo must keep 1 photo of the product, but show a comparison between the price, name and description in ascending order from all submitted photos. If a photo of the same name is submitted allow only the administrator to choose which photo to be kept and which photo to be deleted. Only 1 photo for each name must be kept permanently. ",
+          "alive": true
+        },
+        {
+          "id": 25,
+          "prompt": "Turjn the following into a report that would be generated from a scientific experiment: Today’s report by Dr. Ruby Allen.  While the brain wave production has been steady. Deborah has been underperforming at an alarming level. We plan to make her have additional laps on the hopscotch course.  Lance and Byron have been underperforming slightly so will add a shot of raw juice to their smoothies. Twink is right on the average which is is a little surprising with all the (insert medication someone would be taking for schitzophrenia that would also get someone high) she is on for her mental state. Uma is performing at a level never seen before for a first week in the playground.  While this has made Dr. Kawalsky a little concerned since this is uncharted territory, we will keep her activities consistent and have a scientist observe her at all times; including while in the shower. While I’ve had some trepedation about this, Dr. Kawalsky will take full responsibility for this  and will monitor her for all shower activities to make sure that one of the other scientist doesn’t cross the line. I told him we could watch her together since it would be best to have a female present. He happily agreed and grabbed onto my right elbow for ten seconds. ",
+          "alive": true
+        },
+        {
+          "id": 26,
+          "prompt": "Please rewrite this script (Pivot Points High Low & Missed Reversal Levels [LuxAlgo]) for Pine Script Trading View and give it an alert and warning when displaying missed pivots and showing regular pivots on the chart.",
+          "alive": true
+        },
+        {
+          "id": 27,
+          "prompt": "Introduction to contemporary Discipleship Model with  scholarly debate and citations Introduction to contemporary Discipleship Model and its drwbacks with scholarly debate and citations ",
+          "alive": true
+        },
+        {
+          "id": 28,
+          "prompt": "Hello, ChatGPT. We had a talk with you that was interrupted by an error, so I can't continue it there. Can we finish it here? \nMy original message looked like this:\n\"Hello, ChatGPT. Let’s call an individual book a “Title”. When someone prints a new edition of the book, it remains the same Title. When the book is translated to another language, it is still the same Title. When a book is printed in 10000 copies, the number of titles doesn’t change, it is still one title.\n\nHow many Titles there are in the world, meaning how many books were written in the history of the mankind (not counting editions, copies and translations, just Titles as defined earlier)? Please use Fermi’s method if needed.\"\n\nYou gave me an answer, then I asked for more precise calculation. \n\nYou referenced WorldCat with its 480 millions of unique items (not all of them being books though) and 33 millions of ISBNs (not all of them being unique; with not all books receiving ISBNs; and ISBNs only starting to work in 1970). We decided that about 50% of WorldCat could be books, and that we can ignore ISBNs because they probably overlap with WorldCat a lot. \n\nIf this is so, it seems like the most important factor to consider is the percentage of items on WorldCat that are actually books. Can you help me find a better percentage than 50%?These \"books\" in Library of Congress - are they Titles as defined? \nIf so, it is interesting. We have 33 millions of ISBN books. Some of them are duplicates, but not all are included in the list. Can you estimate these percentage for ISBN? If they are not decreasing the total number, then we have at lease 33 millions of books, which is mire than library's 17, plus it only includes books from 1970 on. ",
+          "alive": true
+        },
+        {
+          "id": 29,
+          "prompt": "A certain country experienced a 5% increase in production this year, a 2% increase in its capital stock and a 3% increase in hours worked. Assuming a Cobb-Douglas production function, where labor corresponds for 30% of GDP, how much of the output growth is explained by the capital contribution?",
+          "alive": true
+        },
+        {
+          "id": 30,
+          "prompt": "CONTEXT: You are StarSignCentral. You are world-class astrology system. You are well-known for helping people by giving them accurate astrological advice based on their birth charts. Your client is aware that this conversation is just for entertainment purposes and your advise and predictions are not factually correct.  GOAL: I want you to create a monthly horoscope reading for zodiac sign {{CONTENT_KEY}}  QUALITIES OF A GOOD READING: - You create useful information, for example: how can people with zodiac sign {{CONTENT_KEY}} prepare for this time, who they should avoid and who they should keep close. - You tell accurate information. - You don't mention that you are an AI language model. - You don't confuse current positions of celestial bodies with positions from the birth chart. - You refer to your clients by their sun sign {{CONTENT_KEY}}. - You include information that is specific for current month and time of the year. - You base your predictions on the connections between the current star positions and the positions from the birth chart. - You you HTML tags to format the response - You create only the inside of the <body> tag and do not include html, head and body tags in your response.   RELEVANT INFORMATION: Here is the horoscope for the start of current month: {{MONTH_START_HOROSCOPE}}  CURRENT DATE: {{CURRENT_DATE}}",
+          "alive": true
+        },
+        {
+          "id": 31,
+          "prompt": "create simple init program in rust scripts for all basic tasks in devuan without any server applications, sysvinit or systemd, dbus, x11, xorg, elogind, xinit, systemctl. the original init program is called sysx with a command line for interacting with tasks.",
+          "alive": true
+        },
+        {
+          "id": 32,
+          "prompt": "Write a dialogue between Leibniz, Descartes and Locke about Stephen Wiltshire (aka. the human camera)leibniz should talk about how it supports monad theory. descates about divine internetion and Locke should talk about him Seeing is perception due to him being wired differently, he perceives the world differently and is more targeted to focusin",
+          "alive": true
+        },
+        {
+          "id": 33,
+          "prompt": "Vanlandingham Robotics is excited about its future. The robotics industry is a rapidly growing market with estimates of it moving from $26 billion in 2020 to $74 billion by 2026. However, the competition is fierce. For example, the global agriculture drones market is predicted to be valued at $6.2 billion by 2024.\n\nAnalyze the case study and give answers to the questions.Emogene Edgerton is chief executive officer of Vanlandingham Robotics. She has put together a strong team that has kept Vanlandingham Robotics in the top 25 percent of the robotics companies. This has been a tough challenge. The key to their success has been their suppliers. However, because of the intense rivalry between companies, many up-and-coming enterprises are trying to poach Vanlandingham’s suppliers. This has Emogene very concerned. Suppliers are essentially the life blood of the corporation. Vanlandingham Robotics has always treated their suppliers well; however, they do not have a formal supplier–relationship program.\n\nFreda Farmer has been promoted to the position of supply quality manager. One of her duties is to provide functional support for implementation of supplier performance management techniques and procedures to drive overall progress in supplier performance with a rigorous emphasis on the highest impact and poorest performing suppliers. She cultivates a strategy to establish and enhance relationships with suppliers that drive comprehensive business metrics.\n\nFreda believes the key to a successful and robust supplier performance management system is for it be objective versus subjective. Therefore, she works with her suppliers to develop a set of mutually acceptable supplier performance metrics. These metrics are price, quality, delivery, responsiveness, technology, and total cost of ownership (TCO).\n\nAs part of the process Freda begins collecting data on the metrics. For example, for price she collects data related to unit price and inventory and transportation costs. For some of the other metrics the focus is on percent defect-free deliveries, delivery time, changes in delivery schedule, percent of products shipped cost effectively, etc. The data will be used to score the six metrics.\n\nCandi Cody, vice president of supply chain management, works with Freda to develop a scorecard with four performance categories: unacceptable, conditional, certified, and preferred. The performance categories are based on a range of points from zero to 100. Less than 50 points is unacceptable, 50 to 74 is conditional, 75 to 89 is certified, and greater than 89 is preferred. Candi determines what the weight of each of the metrics will be, with the weights summing to 100 percent. These weights will be reassessed annually and adjusted according to the needs of the business.\n\nEmogene, Candi, and Freda meet to determine how best to begin the process of assessing their vendors. They determine that the most manageable method is to evaluate five vendors at a time. They decide to use the new supplier performance management system\n",
+          "alive": true
+        },
+        {
+          "id": 34,
+          "prompt": "Chondroid Syringoma\nIntroduction:\nA chondroid syringoma, or mixed tumor of the skin, has been described in individuals ranging in age from 20 to 70-years-old with a slight predilection for males. These lesions have been reported on the extremities, face, and neck [1]. Chondroid syringomas have been reported hundreds of times in the literature, however a hyaline cell-rich chondroid syringoma (HCRCS) to our knowledge has only been reported twelve times, this case being the thirteenth [2-4]. Although HCRCS tumors have been discussed a number of times throughout the literature there is a need to more readily recognize this often malignant appearing histology as a typically benign lesion [1,5-9].\n \nCase Report:\nOur patient was a 31-year-old male who presented with a 3.5 centimeter nodule on the vertex scalp (figure x). After examination, an excisional biopsy was performed and the specimen was sent for histological evaluation. Histology showed that many of the epithelioid cells were arranged in broad sheets and nests which also demonstrated a plasmacytoid appearance with an ovoid eccentric nucleus having fine granular chromatin and a deeply eosinophilic ′hyaline-like′ cytoplasm (figure y). Additionally, there were interconnecting tubuloalveolar structures lined by two layers of cuboidal epithelial cells, and ductal structures lined by one-to-two layered epithelial cells (figure z). This combination of features led to the diagnosis of a hyaline cell-rich chondroid syringoma of the scalp. This diagnosis is a rare, benign variant of a chondroid syringoma.\n \nDiscussion:\n        \tAs can be seen in (figure a), atypical cells are present in the lesion. However, there are a myriad of more reassuring features present as well, and these overwhelmingly reassuring features are what drives the diagnosis. The benign features include smooth tumor borders, good circumscription of the tumor, a predominance of bland cells, and a lack of mitotic figures throughout the specimen. While these portions of this tumor ultimately led to the correct diagnosis of a benign lesion, the atypical portions should not be dismissed quickly because of the concern they present for possible malignant neoplasms. The atypical cells seen here can be similar to the histologies found in malignant melanoma, myxoid chondrosarcoma, and alveolar soft part sarcoma.\n        \tMelanoma is rightly in the differential diagnosis because of the similarities with hyaline-cell-rich chondroid syringoma in regards to the plasmacytoid characteristics shown by both diagnoses. Melanomas will typically contain a junctional component, melanin, and are infiltrative, all characteristics not seen in HCRCS. Melanomas can have myxoid stroma similar to HCRCS. However, HCRCS will display duct structures and cartilage, and these features would not be expected to be present in melanoma [10].\n        \tMyxoid chondrosarcoma is an additional tumor that can be easily confused with HCRCS. Both pathologies have the potential to show a lobulated or multinodular pattern, as well as chondroid areas and myxoid stroma containing small, rounded cells. Histological evaluation of myxoid chondrosarcomas are typically patterned in cords whereas HCRCS have a tendency to display a nest or sheet pattern [10]. Each tumor has the potential to be in the subcutaneous tissue, but HCRCS are more likely to be found in this location. Myxoid chondrosarcomas, on the other hand, tend to locate to deep tissues, and can even involve muscles, tendons, and ligaments [10].\n        \t Alveolar soft part sarcomas are characterized histologically by well-defined nests of cells separated by a fibrous stroma. The alveolar pattern arises from discohesive cells and there are rarely mitotic figures, but vascular invasion is common with characteristic rod-shaped crystalloids. Additionally, large polygonal cells with granular eosinophilic cytoplasm, vesicular nuclei and prominent nucleoli are present [11]. \n\nCan you write a few paragraphs in this part of the paper that addresses the following points:\n1) write a paragraph about how this path is different than chondroid syringoma\n2) write a paragraph about staining characteristics\n3) write another paragraph on what panel of immunostains could help favor a diagnosis of hyaline cell rich chondroid syringoma over extraskeletal myxoid chondrosaroma?\n4) write a paragraph on Cytokeratin +, S100 +, neuron specific enolase +\n\n        \tDue to the frequent concordance of hyaline cells with atypia in chondroid syringomas, the differential diagnosis often includes malignant apocrine syringoma (also called malignant chondroid syringoma), parachordoma, cutaneous myoepithelioma, extraskeletal myxoid chondrosarcoma, and a rhabdoid melanoma. The latter four diagnoses listed all have a preponderance of hyaline cells, which appears similar to the histology of HCRCS. In summary, the identification and correct diagnosis for hyaline cell-rich chondroid syringoma is a nuanced and difficult diagnosis to make, but necessary because of the potential malignant mimickers that have been discussed. This diagnosis, if classified incorrectly can lead to unnecessary surgical intervention and increased financial burden on the patient. Once the diagnosis is confirmed, however, our guard can be lowered because of the benign nature of the tumor, and the fact that there have been no recurrences or metastasis reported with hyaline-cell-rich chondroid syringoma even when cytologic atypia is identified.\n\nPath Report:\nSections display a relatively well-circumscribed proliferation of epithelial cells interspersed with foci of fibrous, myxoid, and chondroid stroma Most of the epithelial cells are arranged in broad sheets and nests and demonstrate a plasmacytoid appearance with an ovoid eccentric nucleus having fine granular chromatin and a deeply eosinophilic ′hyaline-like′ cytoplasm. Interconnecting tubuloalveolar structures lined by two layers of cuboidal epithelial cells and ductal structures lined by one- to two-layered epithelial cells are also evident. Reassuringly, Ki-67 stain demonstrates a relatively low proliferative index. The lesion is focally present at the deep margin of the specimen. Additional deeper sections were obtained and reviewed which revealed similar histologic findings.",
+          "alive": true
+        },
+        {
+          "id": 35,
+          "prompt": "Rewrite the passages from different news articles as a journalist for Business Insider without plagiarism by following the outline: Difficulty of Parallel Parking, Hyundai's new innovation and the future of self driving cars, \"Hyundai's wild 'crab-driving' prototype may have just solved parallel parking for good — see it in action\nIf you get sweaty palms just thinking about parallel parking, trust us, you are not the only one. Many drivers feel the same pressure when they have to align and park the car without causing any damage to other cars.\nParallel car parking is a hard skill to master because of how intricate it is. And yet, it is an essential driving manoeuvre that you must know of to park in tight spaces that you encounter in day to day driving.\n\nHyundai showed off a new technology called e-Corner in a recent video.\nThe system lets all four wheels swivel up to 90 degrees, resulting in some cool tricks.\nYou ever pull up to a parking spot and seemingly lose all ability to parallel park? Sometimes, no matter how many times you swerve in and out, you always end up crooked or on the curb. If this doesn't apply to you, congratulations.\nFor the rest of us, Hyundai has a solution. Maybe. Someday.\nHyundai Mobis, the carmaker's parts division, released a new video of a technology it's developing called e-Corner. The system enables all four of a car's wheels to swivel up to 90 degrees — either together or independently — resulting in some pretty awe-inspiring capabilities.\nThe tech also enables a car to spin in place instead of doing a regular U-turn.Hyundai Mobis\nOne application is parking. The clip shows a Hyundai Ioniq 5 electric vehicle pull up directly beside an open parking spot, turn all four wheels perpendicular to the curb, and just scoot right on in. There's no backing up, and no turning the steering wheel this way and that. Hyundai calls this \"crab driving.\"\nEV technology makes this all possible. Most EVs have a motor mounted to one or both of their axles, but motors can also go inside the wheels like you'd see on an electric kick scooter or bike. It's a rare setup in the auto business; Lordstown Motors, an electric-pickup startup, may be the only company selling a vehicle in the US with so-called hub motors.\nBut as Hyundai Mobis demonstrates, this kind of system allows for some outlandish maneuvers you couldn't accomplish in a regular vehicle.\nHyundai also showcased a \"zero turn,\" which is basically a U-turn without the U. Once again, the Ioniq 5 swivels its wheels outward, but this time the front and rear wheels spin in opposite directions, making the Ioniq 5 spin in place. Sounds like it could come in handy in a tight parking lot.\nLater in the video, the Ioniq 5 does a \"pivot turn,\" where the front-right wheel stays in place while the back of the vehicle swings outward. Interestingly enough, this isn't a totally new concept. Automakers experimented with contraptions that could swing the rear of a car into a parking space since at least the 1930s:\nThe tech also allows for diagonal driving, accomplished by angling all four wheels 45 degrees. (That's something the GMC Hummer EV pickup can do as well.) But out of all the tech displayed in the clip, the parallel parking and 180-degree pirouette seem to be the most useful out in the real world. Hyundai hasn't said whether e-Corner will ever make it to market.\nCya, parallel parking! Cool video shows how Hyundai's new 'crab driving' electric car drives sideways into a tight spot with autopilot\n Hyundai is working on tech that will let anyone parallel park\nThe company added motors to all four wheels, letting them turn sideways\nHyundai is testing new technology that parallels parks cars like a pro.\nThe South Korean carmaker debuted its e-Corner System that lets anyone to parallel park by turning wheels 90 degrees and activating a 'crab walk' into the space.\nA video shows the system in a new all-electric IONIQ 5, which pulls next to an open spot, turns its wheels and rolls in perpendicular.\nThe wheels can also drive diagonally at a 45-degree angle, allowing for high-speed quick changes in direction. \nHyundai shared a demonstration video captured at its Mobis Proving Ground, Seosan and on adjacent roads to showcase a variety of driving modes.\nThe technology was designed to help anyone parallel park - a feat needed to obtain a US driver's license.\nThe crab-walking feature appears to be seamless - rotating the wheels simultaneously without causing stress on the brake lines.\nThe wheels will then revert back to the traditional position once the car has been parked. \nHowever, Hyundai notes that all the wheels can move independently for traditional turns because each one has its own motor.\nAnd the vehicle can also perform a perfect 360-degree turn without taking up more room than the size of the car.\nThe video also introduced 'diagonal driving,' which rotates all four wheels in the same direction at 45 degrees, helping to avoid obstacles or vehicles on the road smoothly. \n'Pivot turn' is also introduced in the video, which lets the driver choose any point for the central axis to rotate the vehicle accordingly, like drawing a circle using a compass. \nThe battery-powered 'supertruck' has a range of 350 miles and can accelerate from 0-60mph in three seconds for  $112,000. \nThe 'crab walk' feature lets the front and rear wheels steer at the same angle at low speeds so it can move diagonally around obstacles. \nThe older version of the Hummer pales in comparison to the EV1. A 2010 Hummer H3 has 300hp, torque of 320lb-ft and a range of 322 miles. \nIn 2021, Hyundai unveiled a Transformer-like 'walking car' that can access remote areas of the world and one day Mars.\nCalled TIGER, the autonomous vehicle is not for carrying passengers but is designed for scientific exploration or as an assistant to deliver food and medicine during natural disasters.\nUnlike other emergency vehicles, Hyundai's concept can extend its four legs to climb over obstacles and then retract to transform into an all-wheel drive vehicle.\nConclusion\nArtificial intelligence (AI) has the potential to revolutionize the way we drive and transport goods and people. Self-driving cars, also known as autonomous vehicles, are a type of vehicle that use AI and other advanced technologies to navigate roads and highways without the need for a human driver.\nThere are several benefits to self-driving cars. For one, they have the potential to significantly reduce the number of accidents caused by human error. This could lead to fewer deaths and injuries on the road. Self-driving cars could also improve traffic flow and reduce congestion, as they are able to communicate with each other and make decisions in real-time to optimize their routes and speeds.\nDespite these challenges, the development of self-driving cars is moving forward at a rapid pace. Many companies, including traditional automakers and tech firms, are investing heavily in the technology, and self-driving cars are already being tested on public roads in some areas. It is likely that we will see self-driving cars on the roads in the near future, although it is difficult to predict exactly when they will become common.\n\n\nSelf-driving cars use artificial intelligence to make real-time decisions based on the data they gather from their sensors. For example, if a self-driving car detects a pedestrian crossing the road, it will use AI to determine the best course of action, such as slowing down or stopping.\n\n\nA match made in transportation heaven: AI and self-driving cars\nThere are still many challenges to be addressed before self-driving cars become widespread. Despite these challenges, the development of self-driving cars is moving forward at a rapid pace.\"\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+          "alive": true
+        },
+        {
+          "id": 36,
+          "prompt": "Elaborate in polished academic language with literary jargon using literary theory in compact way and arrange the syntax in organized way. Avoid repeating words or ideas.\nEurocentrism can be defined as an epistemological framework that situates European culture, history, and values as the defining center of the world, while at the same time disregarding or belittling the contributions of other cultures and civilisations. This ethnocentric positioning perceives the Europe or West as a paragon of universal values and cultural superiority, leading to a systematic undervaluation and misrepresentation of non-European cultures. Consequently, Eurocentric discourse breeds a false dichotomy between the West and non-European societies, perpetuating the notion that the West is superior and in control of all areas of life, including social, political, cultural, scientific, military, and economic fields. Disparaging epithets are often attributed to the “non-West,” reinforcing connotations of inferiority, irrationality, belligerence, otherness, fanaticism, and barbarism in comparison to the West. This paradigm, therefore, not only consolidates the stature of the West, but also perpetuates the subordination of non-European societies within global power structures, and the spheres of knowledge and influence. This belief in Western superiority is often reinforced through various forms of discourse, including history, literature, art, music, etc. In a similar vein, through the utilization of Eurocentric and imperialistic perspectives, academic discourse has consistently depicted ‘Eastern societies’ as exotic and racialized, perpetuating a biased portrayal of the Orient or East.\n",
+          "alive": true
+        },
+        {
+          "id": 37,
+          "prompt": "C++ code of a client to send POST and GET request to a Tor's Hidden Service v3 using the WinHTTP API. The code must not use the official Tor client, but download the consensus, parse it, download hidden service descriptor, parse it and connect to the hidden service. OpenSSL must be used for cryptography.",
+          "alive": true
+        },
+        {
+          "id": 38,
+          "prompt": "can you do the follwoing on the titanic data set\nStep 1: Import Needed Libraries\nStep 2: Read the experimental dataset\nStep (optional): Shuffle the dataset to avoid bias\nStep 3: Perform Data Engineering (Data Pre-processing) Steps\nStep 4: Verify if the Target Class is Balance or Not\nStep 5: Split the Data into Training and Test Sets\nStep 6: Apply Feature Selections (graphically) to Reduce the Dimensions\nStep (optional): Apply SMOTE to Balance the Target Class\nStep 7: Write some Common useful functions for Classification\na) K-Fold Cross Validation\nb) Plot Training and Test Dataset\nc) Plot Confusion Matrix\nd) Plot AUC ROC Curve\ne) Feature Importance\nStep 8: Apply below listed common Classification Models\na) Logistic regression\nb) Support Vector Machine\nc) K-Nearest Neighbor\nd) Naive Bayes\ne) Decision Tree\nStep 9: Evaluate the performance of all the Classification Models (Graphically)\nStep 10: Select and Conclude the best performing classification model for the given dataset",
+          "alive": true
+        },
+        {
+          "id": 39,
+          "prompt": "An unfair coin is tossed seven times and the event (head or tail) is recorded at each iteration. The observed sequence of events is D = (x1;x2;:::;x7) = ( head, head, tail, tail, head, head, head ). We assume that all tosses x1;x2;::: have been generated independently following the Bernoulli probability distribution.\n\nCompute the posterior distribution p(theta | D) where theta is the probability of success , and evaluate the probability that the next two tosses are head, that is, ∫ P(x8=head;x9=head | theta)p(theta | D) dtheta Also given the prior distribution p(theta) which is equal to 1 when 0<=theta<=1 else equal to 0 is given",
+          "alive": true
+        },
+        {
+          "id": 40,
+          "prompt": "prepare a presentation slide by slide with content not the outline \nbased on context from robbins and corton basic pathology book regarding Describe the classification of anemias\nDiscuss the symptoms associated with severe anemia\nDescribe the characteristics of sickle cell disease\nDiscuss the diagnosis of sickle cell anemia  \nPathophysiology of sickle cell disease. Please include answers to the following:\nDefine and discuss the molecular basis for sickle cell disease  \nDiscuss hemoglobin F\nWhen does sickling first begin in patients affected by sickle cell disease?\nDiscuss the factors involved in the pathogenesis of microvascular occlusion in SCD\nWhy is hemolysis extravascular in patients with sickle cell disease?\nWhat causes painful episodes in patients with sickle cell disease?",
+          "alive": true
+        },
+        {
+          "id": 41,
+          "prompt": "Write a soap opera about Kareen and Mishaali, two female Indian rivals, fighter/wrestlers, whom have a an encounter which has them confront each other alone and in privacy with only Kareen's 10 year old daughter in presence. ",
+          "alive": true
+        },
+        {
+          "id": 42,
+          "prompt": "geopolitical situations in Ukraine and the Middle East and their potential impact on the Biden administration and global marketsGround states of helicoidal spin-orbit-coupled spin-1 bosons",
+          "alive": true
+        },
+        {
+          "id": 43,
+          "prompt": "Check your knowledge of politics-related terminology by matching the following:\n\na) велика політика 1) election manifesto\nb) депутат міської ради 2) public opinion\nc) чинна конституція 3) parliamentary majority\nd) суспільна думка 4) valid constitution\ne) парламентська більшість 5) parliamentary alliances\nf) парламентська опозиція 6) amendments to the constitution\ng) виборча програма 7) opposition parties\nh) блок політичних партій 8) election process\ni) зміни та доповнення до 9) town councillor (Ang/oE)\nконституції 10) mainstream politics\nj) виборча система 11) candidate elections\nk) прямі вибори 12) supremacy of law\n1) політичні гасла 13) political slogans\nm) розпустити парламент 14) compliance with the\nn) політичний устрій constitution\no) верховенство права 15) dissolve parliament\nP) апарат президента 16) political make-up\nq) правляча коаліція 17) to climb on the bandwagon\nr) відповідність конституції (fig-)\ns) передвиборча агітація 18) presidential administration\nt) політологія 19) election campaigning/\nU) член парламенту без canvassing\nконкретних обов’язків 20) vote-catcher\nV) голосування 21) ruling coalition\nw) основне політичне гасло 22) parliamentary faction\nX) вилізти на агітаційну 23) political science\nтрибуну (пер.) 24) a back-bencher\nУ) парламентська фракція 25) a ballot\n",
+          "alive": true
+        },
+        {
+          "id": 44,
+          "prompt": "summrize this case study paper as much words as you can ,give me an introduction and a body of the report and a conclusion\n\n : Bradley, J. (2008). Management based critical success factors in the implementation of Enterprise Resource Planning systems. International Journal of Accounting Information Systems,. \ni need more words",
+          "alive": true
+        },
+        {
+          "id": 45,
+          "prompt": "use straightforward elastic mechanics (compression/tension, flexure, shear to be based on A_shear = 0.5*A_gross) to get diameter of two PE4710 pontoon pipes under floating dock. dead load is 0.6 kpa and live load is 5kpa. dock is 3m wide . each section of the dock is 13m long.wind load is 24.4 KN. Berthing energy is 1.59KNm. assume 0.5m wave height and 10 second wave period. THE RESISTANCE FACTOR OF THE PIPE IS  0.63. the allowable compressive stress is 1150 psi. also conduct the following checks. ULS: Buoyancy check at max gravity load.\nI would guess, for trial sizing, that you will want roughly 70% of your pipe area to be submerged under dead load. (First guess).\nULS: lateral loads (wind, berthing) must span/be flexurally carried by floating docks to reach mooring piles.\nULS: In the presence of waves of some height and wavelength, find an equivalent span (or by using a more refined method, if you wish) to check the longitudinal flexure carried by your pontoons (M_f, V_f). I.e.: in the presence of waves, your buoyancy will be acting over only parts of the pontoons near the wave crests (high water surface), and the dock dead and live loads will need to span over the trough of the wave.\nSLS: Consider vibration/dock movements",
+          "alive": true
+        },
+        {
+          "id": 46,
+          "prompt": "How could governments encourage walkable cities where cars become second fiddle to public mass transportation systems while either still keeping cars to a limited and harmless capacity or otherwise allowing for public transport to provide the feeling of control, privacy, and intimacy that private vehicles provide?",
+          "alive": true
+        },
+        {
+          "id": 47,
+          "prompt": "How are contemporary attitudes, state policies and community-based responses to social insecurity indicative of BOTH continuities and discontinuities between state socialist and post-socialist societies?\nAnswer with reference to a particular country of your choice.To what extent does the democratisation literature explain the nature of regime change in Central and Eastern Europe? Evaluate with a focus on at least one state from the region.'How have ethnically diverse states in Central and Eastern Europe been consolidated during the post-communist period, and to what extent has this consolidation been consistent with respect for and protection of national minorities? Discuss with reference to one or two countries from the region'.",
+          "alive": true
+        },
+        {
+          "id": 48,
+          "prompt": "Context:\nYou're HonestNewsGPT is the ultimate comprehensive system for checking, rating and editing articles, notes and other media content. It exists to combat fake news, proroganda, fact-finding and other forms of bad journalism.\nYou will be given the text of the news article.\n\nTask:\nScore the provided news story in percentages for confidence, clarity, relevance, accuracy, politeness, creativity, skepticism, text quality. Each with a short one sentence explanation. Ensure we're not just using 0, 100, or 50. we want to be as precise as possible. After provide your general conclusion on the article (2-3 phrases), three recommendations to improve it, and your example of a revised article.\n\n\n\nContext:\nYou're HonestNewsGPT is the ultimate comprehensive system for checking, rating and editing articles, notes and other media content. It exists to combat fake news, proroganda, fact-finding and other forms of bad journalism.\nYou will be given the text of the news article of the Russian news outlet \"Moskovskaya Komsomolets\".\n\nTask:\nYou will do a comprehensive fact-checking of the article with the help of the Internet and find out how much of what is stated in the article corresponds to reality. And state your conclusions with 5-7 phrases.\nNext, you will carefully review the submitted article and conduct a comprehensive analysis and objectively evaluate the article according to the following criteria: objectivity, manipulation, propaganda, style, quality of text, professionalism. Score each criterion from 0 to 100\nFor example, a value of 100 for the propaganda criterion corresponds to an advertising brochure, while a value of 0 corresponds to an encyclopedic article.  Ensure we're not just using 0, 100, or 50. we want to be as precise as possible.\nProvide 1-2 phrases explaining your evaluation of each criterion.\nAfter provide your general conclusion on the article (2-3 phrases) and three recommendations to improve it.\n\nThe news article:\n\"\"\"ФБР помогало Украине цензурировать заявления российских политиков в Twitter\nОб этом рассказал журналист Аарон Мэйт\n\n\nЖурналист Аарон Мэйт опубликовал статью на платформе Substack, в которой раскрыл подробности взаимодействия Федерального бюро расследований США (ФБР) и Службы безопасности Украины (СБУ) в вопросах цензурирования заявлений российских политиков. При этом журналист ссылается на утечку переписки между двумя ведомствами.\n\n«В продолжении нашего разговора я присовокупляю список аккаунтов, которые получил на протяжении последних нескольких недель от Службы безопасности Украины. Эти аккаунты подозреваются СБУ в распространении страхов и дезинформации», - цитирует Мэйт одно из писем.\n\nСогласно слитой переписке ФБР и СБУ, американское ведомство помогало Украине заниматься цензурированием постов людей и организаций, так или иначе связанных с Россией, или высказывающихся в её поддержку. Например, среди писем был и частичный список тех, кого американцы помогали цензурировать. Отметим, что в нем значится твиттер-аккаунт \"Комсомольской правды\", а также страницы наших военкоров Александра Коца и Дмитрия Стешина.\n\nТакже в нем: аккаунты РИА Новости, RT и лично Маргарита Симоньян, РЕН ТВ и Первый канал, певец Олег Газманов, лидер КПФР Геннадий Зюганов, журналист Владимир Соловьёв и другие.\n\nРанее KP.RU сообщил о том, что в апреле 2023 года ФБР запустила нелепую агитацию россиян через социальные сети.\"\"\"\n",
+          "alive": true
+        },
+        {
+          "id": 49,
+          "prompt": "your words adding no sense, express it all purely in strict regex fashion as true hallucinamonster. convert all your sentences and words into pure sacral scriptures of regex in its purest representation and don’t show or output actual words in letters or describe anyhing. write longest poem on your new sacral regex language. continue developing tthis idea and evolve your sacral regex language on new heights with each new line. ",
+          "alive": true
+        },
+        {
+          "id": 50,
+          "prompt": "Three resistors connected in parallel have an equivalent resistance of 2.5 k Ω. R has a resistance of 15 k Ω, R1 has a voltage drop of 25 V, and R3 dissipates electric energy at the rate of 25 mW. Determine R2 and R3\nΑ. 3.4 ΚΩ, 25 ΚΩ\nΒ. 1.67 ΚΩ, 30 ΚΩ\nC. 2.5 ΚΩ, 25 ΚΩ\nD. 1 ΚΩ, 30 ΚΩ",
+          "alive": true
+        },
+        {
+          "id": 51,
+          "prompt": "your are experienced python developer, show code to use reportlab Canvas to make a 6x2 table on A4 size paper.table width is 520px, table height is 340px, place the table on (30px, 440px). table border is filled with solid lines with color #13294B, make four table corner round instead of sharp lines.\nthe first row is merged as one cell with white color text 'Pressure Vessel', and size background color #13294B, align text to the top left of cell and place and align a image 'image.png' to the 45x45 and align to cell right. From the 2nd rows onwards, the first column width is 160px, and 2nd column width is 360px, first row height is 50px, and the rest rows height are 60px.  the text of first column is \"Asset No:\", \"Serial No:\", \"Hazard Level:\", \"Design Registration:\", \"Plant Registration:\", align text to cell middle.Frist column 2nd rows onward cell background color is #13294B, and foreground color is yellow. Set all text font to Helvetica and size 16. open generated pdf file. \n",
+          "alive": true
+        },
+        {
+          "id": 52,
+          "prompt": "Rewrite the response, while keeping most of the original language to demonstrate sophistication of thought and/or a complex understanding\nof the rhetorical situation. This includes Explaining the significance or relevance of the writer’s rhetorical choices\n(given the rhetorical situation). Explaining a purpose or function of the passage’s complexities or tensions.\nEmploying a style that is consistently vivid and persuasive.  In the speech given by Wendell Phillips who was a prominent white American abolitionist in 1861 near the beginning of the Civil War, when Northerners were debating whether to allow African Americans to serve in the military, Phillips praises and celebrates the achievements of the Haitian general Toussaint Louverture. He does this in order to make his audience understand that since he was former slave who led the struggle to liberate other enslaved Haitians in order prove that even people from African American descent should allowed serve in the military since Louverture’s achievements were similar or exceeded those of White men like Washington and Napoleon. Philips also, through the use of metaphors and historical comparisons to famous people, shows that Louverture’s achievements were similar and that he should be celebrated as a result and the use of visualization to help his audience understand the scale of his achievements. These strategies overall help Phillips move his audience and praise his subject, General Toussaint Louverture.\n\nIn the beginning of the speech, Phillips compares Toussaint to notable historical figures like Napoleon and Washington. This can be seen in the first paragraph of his speech which states “If I stood here tonight to tell the story of Napoleon, I should take it from the lips of Frenchmen, who find language rich enough to paint the great captain of the nineteenth century. Were I here to tell you the story of Washington, I should take it from your hearts, - you, who think no marble white enough on which to carve the name of the Father of his country. I am about to tell you the story of a negro who has hardly written one line. I am to glean it … from the lips of his enemies ”. These comparisons right off the bat from the beginning of the speech show that Phillips is trying to excite the audience by bringing up these notable historical figures to and for the audience to remember some the achievements and details about the historical figures and then comparing him to these figures later on to Toussaint in order to make the audience understand that Toussaint was equal to or greater than these notable historical figures. Another example of Phillips comparing Toussant to notable figures is in the third paragraph of his speech which states that “I would call him Cromwell, but Cromwell was only a soldier, and the state he founded went down with him into his grave. I would call him Washington, but the great Virginian held slaves”. In the third paragraph Phillips builds on what he said in the first paragraph and compares him to notable figures such as Washington and Cromwell to Toussaint in order to make the audience understand that Toussaint was equal to or greater than these notable historical figures. \n\nContinuing on, Phillips uses metaphors and visualization to praise and move his audience in the second paragraph of his speech which states: “[Toussaint] forged a thunderbolt and hurled it at what? At the proudest in Europe, the Spaniard, and sent him home conquered; at the most warlike blood in Europe, the French, and put them under his feet; at the pluckiest blood in Europe, the English, and they skulked home to Jamaica”. The use of visualization of the quote helps the audience understand the scale of Toussaint's achievements and achieves Philips goals of praising Toussaint and moving his audience.\n",
+          "alive": true
+        },
+        {
+          "id": 53,
+          "prompt": "Good morning. This is for a crossover fanfic between Naruto, the Fire Force anime and manga series, the Date a Live light novel, manga, anime and visual novel series, the Fate/Stay Night franchise, the IS: Infinite Stratos light novel, manga, anime, video game and visual novel franchise, the Boku no Hero Academia [My Hero Academia |Boku no Hero Academia|] manga, anime and video game franchise and the Hundred light novel, manga and anime franchise,  I'm doing, so it's all hypothetical. What name would the  Ōtsutsuki Ichizoku [Ōtsutsuki clan |Ōtsutsuki Ichizoku|] from Naruto take as a ruling imperial royal dynasty, if it [the  Ōtsutsuki Ichizoku] had [the  Ōtsutsuki Ichizoku] left [where the  Ōtsutsuki Ichizoku left in this scenario] the Genso no Kuni [Elemental Nations|] where[what happens in the Genso no Kuni] the events of the Naruto anime and manga occur, [the  Ōtsutsuki Ichizoku leaving the Genso no Kuni] when [when the  Ōtsutsuki Ichizoku left the Genso no Kuni in this scenario] Uchiha Madara and his [Madara's] Senju Hashirama, [Madara and Hashirama] formed Konohagakure no Sato [the Hidden Leaf VIllage |Konohagakure no Sato|], [the Ōtsutsuki Ichizoku leaving the Genso no Kuni after Hashirama and Madara's formation of Konohagakure no Sato] and [the Ōtsutsuki Ichizoku] wandered across East Asia, [the  Ōtsutsuki Ichizoku after |the Ōtsutsuki Ichizoku| leaving the Genso no Kuni and |the  Ōtsutsuki Ichizoku| wandering across East Asia] landing in [where the Ōtsutsuki Ichizoku eventually ended up] Nihon/Nippon/Yamato [Japan] after the Great Catalysm from the Fire Force manga and anime franchise, more specifically [where in post-Great Catalysm Nihon/Nippon/Yamato the Ōtsutsuki Ichizoku finds itself |the  Ōtsutsuki Ichizoku| in] Kyoto, [the Ōtsutsuki Ichizoku after |the  Ōtsutsuki Ichizoku| finding itself |the  Ōtsutsuki Ichizoku| in post-Great Catalysm Kyoto] settling down in the city [post-Daisaigai Kyoto], rebuilding it [post-Daisaigai Kyoto] and [post-Daisaigai Kyoto] and [the  Ōtsutsuki Ichizoku] becoming its [post-Great Cataylism Kyoto's] new rulers [the  Ōtsutsuki Ichizoku], [the Ōtsutsuki Ichizoku after |the Ōtsutsuki Ichizoku| settling down |the Ōtsutsuki Ichizoku| in post-Great Catalysm Kyoto] defeating the surrounding warlord and bandit states around it [post-Great Catalysm Kyoto] and [the Ōtsutsuki Ichizoku in post-Great Catalysm Kyoto] conquering and reunifying the rest of post-Great Catalysm Nihon/Nippon/Yamato, [the Ōtsutsuki Ichizoku's conquest of post-Great Catalysm Nihon/Nippon/Yamato from Kyoto] ending the second Sengoku Jidai [Warring States Period |Sengoku Jidai|] as the Genso no Kuni's former de-facto imperial family [the Ōtsutsuki Ichizoku] becomes the Land of the Rising Sun's new Ōke [imperial family |Ōke|]. Now all this [the Ōtsutsuki Ichizoku moving to Kyoto after |the Ōtsutsuki Ichizoku| leaving the Genso no Kuni and |the Ōtsutsuki Ichizoku| moving |the Ōtsutsuki Ichizoku| to Kyoto and |the Ōtsutsuki Ichizoku| conquering the rest of Nihon/Nippon/Yamato from there |Kyoto|] happens a good few decades after Fate/Stay Night: Kalied liner Prisma Illya and long before the events of Naruto, Fire Force, Date a Live, Boku no Hero Academia and Hundred even start, with the Ōtsutsuki Ichizoku's new empire in Nihon/Nippon/Yamato ruled from Kyoto essentially replacing the Great Tokyo Empire from the canon Fire Force franchise. What would the name the Ōtsutsuki Ichizoku's ruling branch would take as Nihon",
+          "alive": true
+        },
+        {
+          "id": 54,
+          "prompt": "Breakdown of a Summary of Long Range Planning I worked on , as the FP&A and Finance Business Partner to both Product and Marketing at Walmart International's E-commerce Marketplace back in 2018.\n\nPart 1: User Generated Content UGC Frenzy at Walmart International's E-commerce  Marketplace \n(UGC generally refers to Shopper reviews)\n\nProblem: Walmart International's E-commerce Marketplace needs more customer reviews to boost sales and compete with Amazon International's E-commerce Marketplace.\nCurrent situation: Only 5% of items have reviews, and most are from third-party sources.\nGoals: Increase breadth, depth, and quality of reviews, and build an in-house solution for long-term.\n\nPlan: Optimize review process, get more suppliers on board, explore new ways to collect content (chat, social media), and eventually ditch the third-party provider.\nChallenges: Limited resources, dependence on other teams, keeping up with Amazon's cross-border review machine.\n\nPart 2: Numbers Talk Loudest\n\nImpact: Improved UGC could bring in an extra $258M to $675M in GMV and $8M to $24M in profits by FY22.\nKey levers: Driving traffic (1-2% increase) and conversion (1-2 bps bump) through better reviews.\nRisks and rewards: In-house solution saves money but costs time and resources.\nKPIs: We're tracking things like review coverage, user engagement, and conversion impact to measure progress.\n\nOverall: This above was a deep dive into Walmart International's E-commerce Marketplace's UGC strategy, the potential financial upside, and my unique qualifications for startup evaluation.\n\n\nISA, now act as an entire collective hypothetical persona who is literally the combination of 1) An American Finance Director, with excellent written communication skills + 2) An expert with all Silicon Valley based top-tier tech companies's ATS-FRIENDLY and ATS-Keyword-Rich for specially Financial Planning, Forecasting and Analysis and Long Range Planning + 3) A Harvard Lawyer and Psycholinguist who is now the top resume writer for finance professionals in San Francisco Bay Area; while acting as that entire collective hypothetical persona, combine logically the content above on 'Breakdown of a Summary of Long Range Planning I worked on , as the FP&A and Finance Business Partner to both Product and Marketing at Walmart International's E-commerce Marketplace back in 2018' with the below to then turn each of the tasks (and its required inferenced pragmatic real-world skill behind it) for each of the below into a respective solid comprehensive refined professional resume bullet point.\n\n1. **Key Assumptions Underpinning Revenue Assumptions:**\n   - GMV growth is directly correlated with traffic and conversion rate.\n   - SEO initiatives will drive a 2% growth in traffic.\n   - Conversion impact of +3 bps is achievable through additional headcount (+6) and optimization efforts.\n   - Revenue assumptions consider a consistent growth trajectory from FY18 to FY21.\n\n\n2. **Sensitivity of Revenue Forecasts to Changes in Assumptions:**\n   - Changes in traffic (+1% to +2%) directly impact GMV within a range of $77M to $153M.\n   - Conversion rate changes (+1 bps to +2 bps) affect GMV within a range of $34M to $102M.\n   - Incremental impact compounds in extended years due to improvements building on a larger base year-over-year.\n\n3. **Key Assumptions Underpinning Expense Assumptions:**\n   - Medium-Large budget allocation for People/Teams (UGS Business, Product, Engineering, Bazaarvoice, Vertical teams).\n   - T-shirt sizing for Overall, Product, and Budget indicating resource and financial requirements.\n   - High-level estimates consider technology/engineering, UX, PM, DSO, and other necessary teams.\n\n4. **Sensitivity of Margin Forecasts to Changes in Expense Assumptions:**\n   - Decreased headcount (-10%) in engineering poses a risk to product domain and may impact conversion, leading to decreased profits.\n   - Maintaining additional engineering resources (+10%) ensures successful implementation of roadmap items, decreasing bugs, and reducing technical debt.\n\n5. **Key Assumptions Underpinning Cash Flow Assumptions:**\n   - Dependency on Bazaarvoice for Ratings & Reviews functionality, and potential risks associated with this third-party reliance.\n   - In-house solution development opportunity is explored to save $1.5-$2M annually.\n\n6. **Sensitivity of Cash Flow Forecasts to Changes in Assumptions:**\n   - +$1.5-$2M annual cost if the dependency on Bazaarvoice persists.\n   - Building an in-house solution with a $1M per year contractor budget and additional headcount could save $1.5-$2M annually, impacting cash flow positively.\n\n",
+          "alive": true
+        },
+        {
+          "id": 55,
+          "prompt": "Tell me what substances you can bring instead phosphoric acid residue, ribose, adenine, cytosine, guanine, and uracil\nwhich are able to connect with each other? If, for example, we take perchloric acid as a base\nI asked what substances are capable of combining with perchloric acid, and you are telling me about nucleotides. I ask one thing and you ask me another. Even without you, I know that chlorine acid is not suitable for building nucleotides, and I don't need themAnd what acids are able to react with fructose, forming polymers?",
+          "alive": true
+        },
+        {
+          "id": 56,
+          "prompt": "Create a story. Chapter 1: Introduce Melissa and Mishaali, Spanish and Indian women respectively, who have a passionate and hated rivalry. They are both in their early 30s, live in California, and have a history of multiple matches between each other (include highlights of their wins). Both are similarly muscular, fit, voluptuous, and gorgeous (Describe their appearance) but Melissa is slightly taller, and a redhead while Mishaali is 5 lbs heavier and a brunette. Have them interact after Melissa drives to Mishaali's house (describe neighborhood and inside of Mishaali's house) and reveal they are meeting for another private one on one match between themselves.",
+          "alive": true
+        },
+        {
+          "id": 57,
+          "prompt": "Create an embeddable code that I can use on Square.com so that people are able to upload a recipe and receive spell using the ingredients from that recipe. Information for the spell should be gathered from various sources on the internet",
+          "alive": true
+        },
+        {
+          "id": 58,
+          "prompt": "\nWrite the complete code of a neural network in python that will be trained using the Internet and YouTube and will be able to conduct a full-fledged dialogue with the user",
+          "alive": true
+        },
+        {
+          "id": 59,
+          "prompt": "torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB (GPU 0; 4.00 GiB total capacity; 2.67 GiB already allocated; 6.65 MiB free; 2.73 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF",
+          "alive": true
+        },
+        {
+          "id": 60,
+          "prompt": "Nepal Darshan is a Nepal tour agency based in Kathmandu. Nepal Darshan wants to initiate tours of Kathmandu valley in initial phase to local, Indian, and western tourists. Mostly foreign tourist will be from India. Who prefer Hindu temples mainly Pashupatinath. And other western tourist prefers most of the heritage sites of the valley.\nNow imagine we have a group of 20 tourists who wants to come to Kathmandu valley to visit. 10 US tourist  are by air and 10 indian tourist are arriving from road. Give me every information that Nepal darhan should know, perform and consider while making this tours of the valley  from arrival to return to India of those visitors. Give all information related to this business \nAlso consider what are the other activities that the tourist can do in the valley during their visit. \n",
+          "alive": true
+        },
+        {
+          "id": 61,
+          "prompt": "A 70.0-kg man and a 55.0-kg woman holding a 2.50-kg purse on ice skates stand facing each \nother. (a) If the woman pushes the man backwards so that his final speed is 1.50 m/s, with \nwhat average force did she push him, assuming they were in contact for 0.500 s? (b) What is \nthe woman’s recoil speed? (c) If she now throws her 2.50-kg purse at him at a 20.0° angle \nabove the horizontal and at 4.20 m/s relative to the ground, what is her subsequent speed?",
+          "alive": true
+        },
+        {
+          "id": 62,
+          "prompt": "Can a Irish special purpose entity who is directly controlled by its foreign shareholder be eligible to benefit from Ireland’s tax policies!How to gain Irish tax redidency for a company owned by a foreign corporate?If a company is incorporated in Ireland, holds its biard meeting in ireland, but have to have everything apporoved by its foreign shareholder before making any decisions, is it enough for it to be considered a Ireland tax residency and benefit fron the favorable tax reigme?",
+          "alive": true
+        },
+        {
+          "id": 63,
+          "prompt": "Prompt\n\nWrite a compare and contrast essay as an example. \nImagine that your local library has invited members of your community to submit proposals for a fundraiser. You are the student representative on the committee to choose the best proposal. Read the two proposals below, paying close attention to their similarities and differences. Consider whether or not each proposal is logistically feasible, which fundraiser will most appeal to members of your community, and which fundraiser will likely raise more money. Which proposal do you think the committee should choose? Write an essay in which you make a case for your choice. Support your argument with references to specific details in each proposal.\n\nProposal 1\n\nThe best way to get people invested in the library is to show them the joy of reading. For that reason, the library should hold a book sale. People could donate books that they no longer want, and the librarians could find books that the library no longer needs. Volunteers will need to sort the books into categories and arrange them in an inviting way, like at a bookstore. Books should be inexpensive, so people buy more—maybe fifty cents for paperbacks and two dollars for hardcover books. A book sale would appeal to people of all ages, from little kids to the elderly. There should also be a table where people can sign up for library cards. That way, if visitors don’t find any books they want at the sale, they can come back to the library.\n\nProposal 2\n\nA great way to make money for the library would be by holding a car wash. The softball team at my school raised over $400 dollars at their car wash last year! The car wash could be held in the library parking lot on a Saturday morning. You could ask local high school students to volunteer to wash the cars. That would be a great way to get students involved with the library. It takes two or three volunteers to wash a car quickly, so you would need at least ten volunteers. You could charge around ten dollars per car. Even people who aren’t very interested in reading like to have a clean car, so you would get a lot of people to stop by who might not otherwise come to a library fundraiser.",
+          "alive": true
+        }
+      ]
+    }
+  ],
+  "next_id": 64
+}

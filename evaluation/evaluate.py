@@ -21,6 +21,7 @@ Usage (from the repository root):
 """
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 import random
@@ -31,6 +32,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from evaltree.sampling import sample_descendants  # noqa: E402
 from evaluation.simple_eval import _judge_call, safe_extract_score  # noqa: E402
 
 
@@ -173,6 +175,20 @@ def _get_score(prompt_template, prompt_a, prompt_b, model_name, api_keys):
     return 0.0, "Error: all attempts failed"
 
 
+def _get_scores(requests, model_name, api_keys, max_workers):
+    """Score an ordered request batch, optionally using bounded concurrency."""
+    def score(request):
+        prompt_template, prompt_a, prompt_b = request
+        return _get_score(
+            prompt_template, prompt_a, prompt_b, model_name, api_keys
+        )
+
+    if max_workers <= 1 or len(requests) <= 1:
+        return [score(request) for request in requests]
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(requests))) as executor:
+        return list(executor.map(score, requests))
+
+
 def _node_text(node):
     return node.get("prompt") or node.get("summary") or ""
 
@@ -185,10 +201,37 @@ def evaluate_tree_file(input_path, model_name="openai", api_keys=None,
         out_dir.mkdir(parents=True, exist_ok=True)
         output_path = out_dir / (input_path.stem + "_eval.json")
 
+    output_path = Path(output_path)
     random.seed(seed)
-    print(f"Loading {input_path}...")
-    with open(input_path, "r", encoding="utf-8") as f:
+    resume_path = output_path if output_path.exists() else input_path
+    action = "Resuming" if output_path.exists() else "Loading"
+    print(f"{action} {resume_path}...")
+    with open(resume_path, "r", encoding="utf-8") as f:
         data = json.load(f)
+
+    evaluation_identity = {
+        "model": model_name,
+        "samples": num_samples,
+        "seed": seed,
+    }
+    config = data.setdefault("config", {})
+    previous_identity = config.get("posthoc_evaluation")
+    if output_path.exists() and previous_identity not in (None, evaluation_identity):
+        raise ValueError(
+            f"Incompatible partial evaluation at {output_path}: "
+            f"{previous_identity!r} != {evaluation_identity!r}"
+        )
+    config["posthoc_evaluation"] = evaluation_identity
+    config["posthoc_evaluation_status"] = "partial"
+    max_workers = max(1, int(os.environ.get("POSTHOC_MAX_WORKERS", "1")))
+    print(f"Post-hoc judge workers: {max_workers}")
+
+    def write_checkpoint():
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = output_path.with_suffix(output_path.suffix + ".tmp")
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=2, ensure_ascii=False)
+        os.replace(temporary, output_path)
 
     levels = data.get("levels", [])
     id2node = {n["id"]: n for lvl in levels for n in lvl.get("nodes", [])}
@@ -262,23 +305,32 @@ def evaluate_tree_file(input_path, model_name="openai", api_keys=None,
             parent_text = _node_text(node)
 
             # sample once; the same leaves are scored with both prompts
-            if len(leaves) >= num_samples:
-                sampled = random.sample(leaves, num_samples)
-            elif leaves:
-                sampled = [leaves[0]] * num_samples
-            else:
-                sampled = []
+            sampled = sample_descendants(
+                leaves, num_samples, random, repeat_when_short=True
+            )
+
+            if node.get("posthoc_evaluation_complete") is True:
+                done += 1
+                continue
 
             faith_scores, info_scores = [], []
             faith_evals, info_evals = [], []
+            descendant_requests = []
             for leaf_id in sampled:
                 leaf_text = _node_text(id2node[leaf_id])
-                score, text = _get_score(FAITHFULNESS_PROMPT, leaf_text, parent_text,
-                                         model_name, api_keys)
+                descendant_requests.extend((
+                    (FAITHFULNESS_PROMPT, leaf_text, parent_text),
+                    (INFORMATIVENESS_PROMPT, leaf_text, parent_text),
+                ))
+
+            descendant_results = _get_scores(
+                descendant_requests, model_name, api_keys, max_workers
+            )
+            for index, leaf_id in enumerate(sampled):
+                score, text = descendant_results[2 * index]
                 faith_scores.append(score)
                 faith_evals.append(f"Child {leaf_id}:\n{text}")
-                score, text = _get_score(INFORMATIVENESS_PROMPT, leaf_text, parent_text,
-                                         model_name, api_keys)
+                score, text = descendant_results[2 * index + 1]
                 info_scores.append(score)
                 info_evals.append(f"Child {leaf_id}:\n{text}")
 
@@ -298,24 +350,33 @@ def evaluate_tree_file(input_path, model_name="openai", api_keys=None,
                 outsider_text = _node_text(outsider_leaf)
                 node["third_leaf"] = outsider_leaf["id"]
                 node["third_leaf_sim"] = outsider_sim
-                score, text = _get_score(FAITHFULNESS_PROMPT, outsider_text, parent_text,
-                                         model_name, api_keys)
+                outsider_results = _get_scores(
+                    [
+                        (FAITHFULNESS_PROMPT, outsider_text, parent_text),
+                        (INFORMATIVENESS_PROMPT, outsider_text, parent_text),
+                    ],
+                    model_name,
+                    api_keys,
+                    max_workers,
+                )
+                score, text = outsider_results[0]
                 node["specificity_faithfulness"] = score
                 node["evaluation_specificity_faithfulness"] = text
-                score, text = _get_score(INFORMATIVENESS_PROMPT, outsider_text, parent_text,
-                                         model_name, api_keys)
+                score, text = outsider_results[1]
                 node["specificity_informativeness"] = score
                 node["evaluation_specificity_informativeness"] = text
             else:
                 node["specificity_faithfulness"] = None
                 node["specificity_informativeness"] = None
 
+            node["posthoc_evaluation_complete"] = True
             done += 1
             if done % 10 == 0:
                 print(f"Evaluated {done}/{total} parents...")
+                write_checkpoint()
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    config["posthoc_evaluation_status"] = "complete"
+    write_checkpoint()
     print(f"Saved {output_path}")
     return output_path
 
