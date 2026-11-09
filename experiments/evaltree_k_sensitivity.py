@@ -30,7 +30,7 @@ from ablations.runner import prepare_leaves, run_blossom, run_evaltree
 from evaluation.evaluate import evaluate_tree_file
 from experiments.reporting import collect_result, write_reports
 from main import API_KEYS, MODEL_CONFIG
-from llm_utils import GEMMA_REQUEST_VERSION
+from llm_utils import gemma_request_policy
 from tree import Tree
 from evaltree.clustering import CLUSTERING_EMBEDDING_MODEL
 from common_summary_generation.prompt_variants import CURRENT_VARIANT, VALID_VARIANTS
@@ -137,10 +137,7 @@ def _base_config(
         config["main_idea_seed_sha256"] = _sha256(main_idea_seed_tree)
     if "gemma" in (MODEL_CONFIG["blossom"], MODEL_CONFIG["summary_generation"]):
         config["gemma_generation_policy"] = {
-            "request_version": GEMMA_REQUEST_VERSION,
-            "temperature": 0,
-            "ignore_eos": False,
-            "stop": ["<end_of_turn>"],
+            **gemma_request_policy(),
             "main_idea_batch_size": int(API_KEYS["gemma"].get("main_idea_batch_size", 1)),
         }
     return config

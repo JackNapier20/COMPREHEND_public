@@ -19,6 +19,8 @@ export CUDA_LAUNCH_BLOCKING=1
 export BLOSSOM_PROVIDER=gemma
 export SUMMARY_GENERATION_PROVIDER=gemma
 export EVALUATION_PROVIDER=openai
+export GEMMA_MODEL="${GEMMA_MODEL:-/gypsum/work1/zamani/sivaraaman/outputs/gemma-4-31b-a40-V6}"
+export GEMMA_CHAT_MODE="${GEMMA_CHAT_MODE:-native}"
 export INTERNAL_EVAL_MAX_WORKERS="${INTERNAL_EVAL_MAX_WORKERS:-6}"
 export POSTHOC_MAX_WORKERS="${POSTHOC_MAX_WORKERS:-6}"
 export EVALTREE_SUMMARY_MAX_WORKERS="${EVALTREE_SUMMARY_MAX_WORKERS:-8}"
@@ -37,16 +39,22 @@ echo "Finished installing requirements"
 python -u -m experiments.local_model_preflight
 
 # Change GEMMA_RUN_TAG for a different checkpoint; retain it to resume this run.
-OUTPUT_ROOT="hpc_gemma_outputs/${GEMMA_RUN_TAG:-gemma256}"
+OUTPUT_ROOT="hpc_gemma_outputs/${GEMMA_RUN_TAG:-gemma4-v6}"
+METHOD_ARGS=(--k 2 --blossom-only)
+METHOD_LABEL="COMPREHEND"
+if [[ "${GEMMA_INCLUDE_EVALTREE:-0}" == 1 ]]; then
+    METHOD_ARGS=(--k 2)
+    METHOD_LABEL="COMPREHEND + EvalTree(k=2)"
+fi
 for DATASET in WB UF; do
-    echo "Starting ${DATASET}256: COMPREHEND -> EvalTree(k=2) -> GPT evaluation"
+    echo "Starting ${DATASET}256: ${METHOD_LABEL} -> GPT evaluation"
     python -u -m experiments.evaltree_k_sensitivity \
         "comparison_256_outputs/${DATASET}_current_k2/evaltree_capability_base.json" \
         --output-dir "${OUTPUT_ROOT}/${DATASET}256" \
-        --k 2 \
         --num-eval-samples 2 \
         --seed 42 \
-        --blossom-prompt-variant current
+        --blossom-prompt-variant current \
+        "${METHOD_ARGS[@]}"
 done
 
 echo "Results: ${OUTPUT_ROOT}/{WB256,UF256}/comparison.json and REPORT.md"

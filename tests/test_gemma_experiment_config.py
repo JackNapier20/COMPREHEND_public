@@ -1,3 +1,4 @@
+import os
 import unittest
 import tempfile
 from pathlib import Path
@@ -73,6 +74,18 @@ class GemmaExperimentConfigTests(unittest.TestCase):
             "blossom": "claude", "summary_generation": "claude", "evaluation": "openai",
         }):
             self.assertNotIn("gemma_generation_policy", self.config())
+
+    def test_native_and_legacy_chat_have_distinct_cache_identities(self):
+        with patch.dict(runner.MODEL_CONFIG, {"summary_generation": "gemma"}), \
+                patch.dict(runner.API_KEYS, {"gemma": {"model": "gemma4-v6"}}), \
+                patch.dict(os.environ, {"GEMMA_CHAT_MODE": "legacy"}):
+            legacy = self.config()["gemma_generation_policy"]
+            os.environ["GEMMA_CHAT_MODE"] = "native"
+            native = self.config()["gemma_generation_policy"]
+        self.assertNotEqual(legacy["request_version"], native["request_version"])
+        self.assertNotIn("stop", native)
+        self.assertEqual(native["chat_template_kwargs"], {"enable_thinking": False})
+
     def test_rejects_unconfigured_served_model_name(self):
         with patch.dict(runner.MODEL_CONFIG, {"summary_generation": "gemma"}), \
                 patch.dict(runner.API_KEYS, {"gemma": {"model": "<MODEL>"}}):

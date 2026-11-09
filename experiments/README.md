@@ -95,19 +95,33 @@ The downloaded native template must be used for both training and inference.
 Gemma 4 uses different turn tokens and supports native system turns; this
 script does not migrate the Gemma 3-specific pipeline settings or serving stack.
 
-`script_gemma_256.sh` runs COMPREHEND and EvalTree (`k=2`) on WB256,
-then UF256, using Gemma for main-task extraction and parent summaries and
-OpenAI for construction decisions and post-hoc evaluation. It uses the same
-precomputed leaf capabilities as the DeepSeek/GLM runs, two descendant samples,
-seed 42, and the current summary prompt. Gemma must already be serving an
-OpenAI-compatible endpoint reachable from the batch job.
+## Evaluate the fine-tuned Gemma 4 V6 checkpoint
+
+`script_gemma_256.sh` defaults to the two COMPREHEND runs for the paper's
+distillation comparison: WB256 and UF256. Compare each against the existing
+Claude COMPREHEND and Claude EvalTree rows on the same sample. Gemma generates
+main tasks and parent summaries; OpenAI scores construction and post-hoc
+evaluation. The job keeps MPNet, the current paper prompts, two descendant
+samples, and seed 42. It does not train the model or run the 1,024-prompt
+visualization.
+
+In a GPU allocation with a Gemma 4-capable vLLM installation, serve the
+checkpoint with its saved chat template. Adjust GPU resources for your hardware.
+Use an API key when binding to a shared network.
+
+```bash
+MODEL_DIR="/gypsum/work1/zamani/sivaraaman/outputs/gemma-4-31b-a40-V6"
+vllm serve "$MODEL_DIR" --host 0.0.0.0 --port 5050 \
+  --api-key "${GEMMA_API_KEY:?Set the serving API key}"
+```
 
 Set these values in the repository's `.env` (unquoted, as read by `main.py`):
 
 ```dotenv
-GEMMA_API_KEY=DUMMY
-GEMMA_BASE_URL=http://YOUR_MODEL_SERVER:8000/v1
-GEMMA_MODEL=YOUR_EXACT_SERVED_MODEL_NAME
+GEMMA_API_KEY=YOUR_SERVING_API_KEY
+GEMMA_BASE_URL=http://YOUR_MODEL_SERVER:5050/v1
+GEMMA_MODEL=/gypsum/work1/zamani/sivaraaman/outputs/gemma-4-31b-a40-V6
+GEMMA_CHAT_MODE=native
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY
 ```
 
@@ -119,11 +133,16 @@ The preflight prints the effective endpoint and client node, and retries
 connection failures for up to ten minutes to allow vLLM to finish loading.
 Set `GEMMA_WAIT_SECONDS` to change this limit. A model-name mismatch or
 authentication error stops immediately. An already-exported `GEMMA_BASE_URL`
-or `GEMMA_MODEL` takes precedence over the value in `.env`.
+or `GEMMA_MODEL` takes precedence over the value in `.env`. The Slurm
+launcher defaults to the checkpoint path as the served model ID; export
+`GEMMA_MODEL` before submitting if vLLM is serving a different alias.
 Gemma generation uses an explicit `GEMMA_TIMEOUT_SECONDS` deadline (default
 600 seconds), output cap `GEMMA_MAX_TOKENS` (1024), and two same-model attempts.
-Gemma requests explicitly use temperature 0, preserve system instructions in
-the first user turn, and send `ignore_eos=false` and the `<end_of_turn>` stop.
+Gemma requests use temperature 0 and respect EOS. The Slurm launcher defaults
+to `GEMMA_CHAT_MODE=native`, which preserves system turns, disables thinking,
+and uses the checkpoint's native stop tokens. Use `GEMMA_CHAT_MODE=legacy`
+only for a checkpoint that needs the older folded system/user prompt and
+`<end_of_turn>` stop string.
 Main-task extraction defaults to `GEMMA_MAIN_IDEA_BATCH_SIZE=1`, which calls
 individual plain-text extraction without requiring a JSON array. Set a size
 of 2 or more only after confirming the model follows the batched JSON format.
@@ -163,17 +182,17 @@ For the pipeline's input and server readiness checks:
 python -u -m experiments.local_model_preflight
 ```
 
-Then exercise the actual main-idea, EvalTree summary, and COMPREHEND current
-few-shot summary paths on two toy inputs:
+Before submitting, exercise the actual main-idea and COMPREHEND summary
+paths on toy inputs. Check that the output is coherent for this checkpoint;
+native chat mode does not change the task wording to match unknown SFT prompts.
 
 ```bash
-GEMMA_MAIN_IDEA_BATCH_SIZE=1 python -u -m experiments.gemma_smoke_test \
-  --base-url http://YOUR_MODEL_SERVER:5050/v1 \
-  --model YOUR_EXACT_SERVED_MODEL_NAME
+GEMMA_CHAT_MODE=native GEMMA_MAIN_IDEA_BATCH_SIZE=1 \
+  python -u -m experiments.gemma_smoke_test --checks main-ideas comprehend-summary
 ```
 
 This uses only Gemma and writes no artifacts. With batch size 1 and no retries,
-there are four generation requests. Inspect every printed result for coherence;
+these checks use three generation requests. Inspect every result for coherence;
 a successful endpoint response does not prove the longer pipeline prompts work.
 `--main-idea-batch-size 2` can separately test JSON batching. Keep the same
 `GEMMA_MAIN_IDEA_BATCH_SIZE` in the full run as in the successful smoke test.
@@ -210,13 +229,13 @@ mkdir -p slurm_output_j
 sbatch script_gemma_256.sh
 ```
 
-Outputs go to `hpc_gemma_outputs/gemma256/WB256` and `UF256`. Each contains
+Outputs go to `hpc_gemma_outputs/gemma4-v6/WB256` and `UF256`. Each contains
 the constructed trees, evaluated JSONs, `comparison.json`, `comparison.csv`
 (including standard errors), and `REPORT.md`. These generated outputs are
 ignored by Git. To give a different checkpoint its own output directory:
 
 ```bash
-GEMMA_RUN_TAG=gemma3-27b-it sbatch script_gemma_256.sh
+GEMMA_RUN_TAG=gemma4-v6-repeat sbatch script_gemma_256.sh
 ```
 
 The script retains the supplied four-hour limit. Resubmitting with the same
@@ -224,6 +243,10 @@ tag reuses completed artifacts and resumes partial COMPREHEND/post-hoc
 evaluation checkpoints; an interrupted EvalTree construction is rebuilt.
 The exact served model name is recorded in the tree configuration and affects
 cache compatibility. Keep OpenAI network access available throughout the run.
+
+For an additional Gemma EvalTree baseline, set `GEMMA_INCLUDE_EVALTREE=1`
+before submitting. It uses the precomputed leaf capabilities, MPNet clustering,
+and `k=2`. It is not required for the distillation table.
 
 # EvalTree faithfulness-specificity gap diagnostics
 

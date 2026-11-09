@@ -1,3 +1,4 @@
+import os
 import re
 import tempfile
 import threading
@@ -14,6 +15,7 @@ from tree import Level, Node, Tree
 
 class GemmaGenerationTests(unittest.TestCase):
     def setUp(self):
+        self.enterContext(patch.dict(os.environ, {"GEMMA_CHAT_MODE": "legacy"}))
         self.config = {
             "api_key": "DUMMY", "base_url": "http://gpu014:5050/v1",
             "model": "gemma-v4", "timeout_seconds": 600, "max_tokens": 1024,
@@ -69,6 +71,23 @@ class GemmaGenerationTests(unittest.TestCase):
         ])
         self.assertEqual(len(messages), 5)
         self.assertEqual(messages[2]["content"], "task A and task B")
+
+    @patch("llm_utils.OpenAI")
+    def test_native_chat_keeps_system_turn_and_uses_checkpoint_eos(self, openai):
+        messages = [
+            {"role": "system", "content": "Summarize a pair."},
+            {"role": "user", "content": "Task A and task B."},
+        ]
+        openai.return_value.chat.completions.create.return_value = self.response
+        with patch.dict(os.environ, {"GEMMA_CHAT_MODE": "native"}):
+            gemma_chat_text(self.config, messages=messages)
+        request = openai.return_value.chat.completions.create.call_args.kwargs
+        self.assertEqual(request["messages"], messages)
+        self.assertNotIn("stop", request)
+        self.assertEqual(request["extra_body"], {
+            "ignore_eos": False,
+            "chat_template_kwargs": {"enable_thinking": False},
+        })
 
     @patch("llm_utils.OpenAI")
     def test_system_only_input_fails_before_api_call(self, openai):

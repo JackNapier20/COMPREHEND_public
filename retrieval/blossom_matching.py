@@ -10,7 +10,7 @@ import torch
 import anthropic
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
-from llm_utils import API_TIMEOUT_SECONDS, GEMMA_REQUEST_VERSION, anthropic_text, gemma_chat_text, together_chat_text
+from llm_utils import API_TIMEOUT_SECONDS, anthropic_text, gemma_chat_text, gemma_request_policy, together_chat_text
 from retrieval.embedding_cache import load_or_create_embeddings
 from retrieval.similarity import blend_similarities
 
@@ -449,9 +449,7 @@ def get_nearest_neighbors_blossom(
         active_nodes = [level.nodes[idx] for idx in active_idxs]
         if llm_model_name == "gemma":
             tree.config["gemma_generation_config"] = {
-                "request_version": GEMMA_REQUEST_VERSION,
-                "temperature": 0,
-                "ignore_eos": False,
+                **gemma_request_policy(),
                 **{
                     key: api_keys["gemma"].get(key, default)
                     for key, default in (
