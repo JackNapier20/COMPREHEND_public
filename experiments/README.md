@@ -95,6 +95,27 @@ The downloaded native template must be used for both training and inference.
 Gemma 4 uses different turn tokens and supports native system turns; this
 script does not migrate the Gemma 3-specific pipeline settings or serving stack.
 
+## Retrain Gemma 4 with the paper extraction prompt
+
+On HPC, use the CUDA/Unsloth training environment. The trainer starts from
+the Gemma 4 base checkpoint and reads `finetuneDatasetv6.json` in place. It
+rewrites only the extraction messages in memory to match the single-item
+benchmark prompt. Extraction targets and summary training examples are unchanged.
+
+```bash
+python -u train_gemma4_paper.py --preflight-only
+python -u train_gemma4_paper.py --report-to none
+```
+
+The same job reloads the saved merged checkpoint in 4-bit and smoke-tests
+WB256 leaves 137 and 169 and the actual COMPREHEND pair-summary prompt.
+Smoke outputs go into the training manifest. This checks format and termination,
+not semantic correctness or the later BF16 vLLM deployment. Inspect the printed
+responses before submitting evaluation. For the new model, override
+`GEMMA_MODEL` with its actual served ID and use a fresh `GEMMA_RUN_TAG`.
+The default merged model path is
+`/gypsum/work1/zamani/sivaraaman/gemma-4-31b-a40-merged-bf16-paper-prompt`.
+
 ## Evaluate the fine-tuned Gemma 4 V6 checkpoint
 
 `script_gemma_256.sh` defaults to the two COMPREHEND runs for the paper's

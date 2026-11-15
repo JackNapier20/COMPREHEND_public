@@ -11,6 +11,7 @@ import anthropic
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 from llm_utils import API_TIMEOUT_SECONDS, anthropic_text, gemma_chat_text, gemma_request_policy, together_chat_text
+from gemma_prompts import gemma_main_idea_messages
 from retrieval.embedding_cache import load_or_create_embeddings
 from retrieval.similarity import blend_similarities
 
@@ -61,20 +62,6 @@ Input JSON:\n{payload}
     """
 )
 
-def gemma_main_idea_messages(text: str) -> list[dict]:
-    """Build the actual extraction request for inference and diagnostic probes."""
-    prompt = (
-        "You will be given a text. Extract the single most important main idea "
-        "in one short sentence.\nReturn only that sentence.\n"
-        f"Text:\n{text}"
-    )
-    return [
-        {"role": "system", "content": (
-            "You are a professional editor. Read the following prompt carefully "
-            "and respond to the best of your ability."
-        )},
-        {"role": "user", "content": prompt},
-    ]
 
 
 def _parse_main_idea_batch(raw: str, expected: int) -> list[str] | None:
